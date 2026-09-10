@@ -24,11 +24,15 @@ export default function RefusalCard({ data }: { data: Refusal }) {
 
   return (
     <div className="mz-anim-in overflow-hidden rounded-lg border border-deny/40 bg-deny-soft">
-      <div className="flex items-start gap-2.5 px-3.5 py-3">
-        <span className="mt-[3px] flex h-4 w-4 shrink-0 items-center justify-center
-                         rounded-full border border-deny/50 font-mono text-[10px] text-deny">
-          ✕
-        </span>
+      <div className="flex items-start gap-3 px-3.5 py-3">
+        <img
+          src="/illustrations/refused-sealed.png"
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className="-my-0.5 h-11 w-11 shrink-0 object-contain select-none"
+          draggable={false}
+        />
         <div className="min-w-0 flex-1">
           <div className="font-mono text-[10px] font-semibold tracking-[0.14em] text-deny">
             REQUEST REFUSED

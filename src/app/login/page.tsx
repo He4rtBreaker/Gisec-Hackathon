@@ -31,6 +31,13 @@ export default async function LoginPage() {
             One assistant. Three environments. Every request is inspected on sovereign
             infrastructure <em className="text-ink not-italic">before</em> it is allowed to move.
           </p>
+          <img
+            src="/illustrations/sovereign-shield.png"
+            alt=""
+            aria-hidden
+            className="mt-10 h-[200px] w-[200px] object-contain opacity-95 select-none"
+            draggable={false}
+          />
         </div>
 
         <div className="relative space-y-3">

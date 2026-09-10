@@ -56,6 +56,13 @@ function EnvBadge({ envKey }: { envKey: EnvKey }) {
 function Empty({ onSuggest }: { onSuggest?: (text: string) => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+      <img
+        src="/illustrations/inspect-document.png"
+        alt=""
+        aria-hidden
+        className="mb-5 h-[132px] w-[132px] object-contain opacity-95 select-none"
+        draggable={false}
+      />
       <div className="font-mono text-[24px] font-semibold tracking-[0.30em] text-ink-mid">MIZAN</div>
       <p className="mt-4 max-w-[420px] text-[14px] leading-relaxed text-ink-dim">
         Describe what you need. Every request is inspected on sovereign infrastructure
