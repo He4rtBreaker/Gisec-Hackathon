@@ -103,20 +103,27 @@ export async function classify(input: ClassifyInput): Promise<Classification> {
   let verdict: ReturnType<typeof parseVerdict> = null;
   let degraded = false;
 
-  try {
-    const raw = await getProvider("inspector").complete({
-      system: ADJUDICATOR_SYSTEM,
-      messages: [{ role: "user", content: subject }],
-      temperature: 0,
-      maxTokens: 400,
-      json: true,
-    });
-    verdict = parseVerdict(raw);
-    if (!verdict) degraded = true;
-  } catch {
-    // Inspector unavailable. Rules still hold, and we say so rather than
-    // silently downgrading to a permissive default.
+  const inspector = getProvider("inspector");
+  if (inspector.id === "mock") {
+    // No real model on the inspector — the detector rules classify alone,
+    // exactly as the offline mode is documented to work.
     degraded = true;
+  } else {
+    try {
+      const raw = await inspector.complete({
+        system: ADJUDICATOR_SYSTEM,
+        messages: [{ role: "user", content: subject }],
+        temperature: 0,
+        maxTokens: 400,
+        json: true,
+      });
+      verdict = parseVerdict(raw);
+      if (!verdict) degraded = true;
+    } catch {
+      // Inspector unavailable. Rules still hold, and we say so rather than
+      // silently downgrading to a permissive default.
+      degraded = true;
+    }
   }
 
   // The model may escalate above the rule floor, never below it.
