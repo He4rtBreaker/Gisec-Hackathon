@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Level } from "@/lib/domain";
+import { useSidebarCollapsed } from "@/components/nav/useSidebarCollapsed";
+import SidebarToggle from "@/components/nav/SidebarToggle";
 
 interface ConvSummary {
   id: string;
@@ -36,13 +38,17 @@ export default function Sidebar({ user, conversations }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [collapsed] = useSidebarCollapsed();
 
   return (
-    <aside className="flex w-[264px] shrink-0 flex-col border-r border-line bg-surface">
+    <aside
+      className={`flex shrink-0 flex-col overflow-hidden bg-surface transition-[width] duration-200
+        ${collapsed ? "w-0 min-w-0 border-r-0" : "w-[264px] border-r border-line"}`}
+    >
       {/* Brand */}
-      <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-4">
-        <span className="font-mono text-[15px] font-semibold tracking-[0.26em]">MIZAN</span>
-        <span className="mz-label text-[9px]">Orchestrator</span>
+      <div className="flex items-center gap-2 border-b border-line px-4 py-3.5">
+        <span className="font-mono text-[15px] font-semibold tracking-[0.24em]">MIZAN</span>
+        <span className="ml-auto shrink-0"><SidebarToggle placement="header" /></span>
       </div>
 
       <div className="p-3">

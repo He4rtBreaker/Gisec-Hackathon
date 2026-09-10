@@ -47,8 +47,8 @@ export default function PolicyTable({ policies, signals }: { policies: PolicyVie
         <button
           type="button"
           onClick={() => setEditing("new")}
-          className="rounded-full bg-cloud px-3.5 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
-                     text-white transition hover:brightness-110"
+          className="rounded-full bg-primary px-3.5 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
+                     text-white transition hover:opacity-90"
         >
           + NEW RULE
         </button>
@@ -213,8 +213,8 @@ function PolicyForm({ initial, signals, onDone, defaultPriority }: {
 
       <div className="flex items-center gap-3 pt-1">
         <button type="submit" disabled={pending}
-                className="rounded-full bg-cloud px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
-                           text-white transition hover:brightness-110 disabled:opacity-60">
+                className="rounded-full bg-primary px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
+                           text-white transition hover:opacity-90 disabled:opacity-60">
           {pending ? "SAVING…" : "SAVE RULE"}
         </button>
         <button type="button" onClick={onDone}

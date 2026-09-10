@@ -11,7 +11,7 @@ export default function PoliciesPage() {
     <div className="mx-auto max-w-[1180px] space-y-6 px-8 py-8">
       <header>
         <div className="mz-label">Policies</div>
-        <h1 className="mt-1 text-[21px] font-semibold tracking-tight">Routing policy</h1>
+        <h1 className="mt-1 text-[28px] tracking-tight">Routing policy</h1>
         <ul className="mt-2 max-w-[760px] list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-ink-dim">
           <li>Rules run top to bottom by priority. The first rule that matches decides.</li>
           <li>

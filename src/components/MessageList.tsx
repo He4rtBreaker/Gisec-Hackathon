@@ -60,7 +60,7 @@ function Empty({ onSuggest }: { onSuggest?: (text: string) => void }) {
         src="/illustrations/inspect-document.png"
         alt=""
         aria-hidden
-        className="mb-5 h-[132px] w-[132px] object-contain opacity-95 select-none"
+        className="mz-anim-float mb-5 h-[132px] w-[132px] object-contain opacity-95 select-none"
         draggable={false}
       />
       <div className="font-mono text-[24px] font-semibold tracking-[0.30em] text-ink-mid">MIZAN</div>
@@ -76,7 +76,7 @@ function Empty({ onSuggest }: { onSuggest?: (text: string) => void }) {
               type="button"
               onClick={() => onSuggest(s.text)}
               className="rounded-xl border border-line bg-overlay px-3.5 py-2.5 transition
-                         hover:border-ink-faint hover:shadow-[0_2px_10px_oklch(0.55_0.02_260/0.08)]"
+                         hover:border-ink-faint hover:shadow-[0_2px_10px_rgba(20,20,19,0.08)]"
             >
               <span className="flex items-center gap-1.5">
                 <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />

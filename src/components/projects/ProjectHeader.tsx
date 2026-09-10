@@ -23,8 +23,8 @@ export default function ProjectHeader({ projectId, name, description }: {
                   className="mz-field w-full resize-none px-3 py-2 text-[13px] leading-relaxed" />
         <div className="flex items-center gap-2">
           <button type="submit" disabled={pending}
-                  className="rounded-full bg-cloud px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
-                             text-white transition hover:brightness-110 disabled:opacity-60">
+                  className="rounded-full bg-primary px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
+                             text-white transition hover:opacity-90 disabled:opacity-60">
             {pending ? "SAVING…" : "SAVE"}
           </button>
           <button type="button" onClick={() => setEditing(false)}
@@ -41,7 +41,7 @@ export default function ProjectHeader({ projectId, name, description }: {
   return (
     <div className="mt-3 flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-[22px] font-semibold tracking-tight">{name}</h1>
+        <h1 className="text-[27px] tracking-tight">{name}</h1>
         {description && <p className="mt-1 max-w-[620px] text-[13px] leading-relaxed text-ink-dim">{description}</p>}
       </div>
       <div className="flex shrink-0 items-center gap-1.5">

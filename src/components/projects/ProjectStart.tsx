@@ -32,8 +32,8 @@ export default function ProjectStart({ projectId, projectName }: { projectId: st
           type="button"
           onClick={start}
           disabled={!value.trim()}
-          className="rounded-full bg-cloud px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.10em]
-                     text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+          className="rounded-full bg-primary px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.10em]
+                     text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
         >
           START CHAT
         </button>
