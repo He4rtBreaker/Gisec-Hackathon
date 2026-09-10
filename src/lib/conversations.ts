@@ -6,6 +6,7 @@ export interface ConversationRow {
   user_id: string;
   title: string;
   seal_level: Level;
+  project_id: string | null;
   created_at: number;
   updated_at: number;
 }

@@ -54,6 +54,17 @@ export default function Sidebar({ user, conversations }: Props) {
         >
           <span className="text-[14px] leading-none">+</span> NEW REQUEST
         </Link>
+        <Link
+          href="/projects"
+          className={`mt-1.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition
+            ${pathname.startsWith("/projects") ? "bg-raised text-ink" : "text-ink-dim hover:bg-raised/60 hover:text-ink-mid"}`}
+        >
+          <svg viewBox="0 0 16 14" className="h-[13px] w-[14px] shrink-0" aria-hidden>
+            <path d="M1.5 3.2c0-.7.5-1.2 1.2-1.2h3.1l1.5 1.6h5.9c.7 0 1.2.5 1.2 1.2v6.5c0 .7-.5 1.2-1.2 1.2H2.7c-.7 0-1.2-.5-1.2-1.2z"
+                  fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          </svg>
+          Projects
+        </Link>
       </div>
 
       {/* Threads */}

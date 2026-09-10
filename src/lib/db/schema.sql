@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS conversations (
   title      TEXT NOT NULL,
   -- highest classification observed in this thread; pins future routing
   seal_level TEXT NOT NULL DEFAULT 'PUBLIC',
+  -- project whose knowledge this thread draws on; fixed once set
+  project_id TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
 );
@@ -63,6 +65,8 @@ CREATE TABLE IF NOT EXISTS classifications (
   signals_json  TEXT NOT NULL DEFAULT '[]',
   inspector     TEXT NOT NULL,
   latency_ms    INTEGER NOT NULL DEFAULT 0,
+  -- project knowledge that accompanied the request, if any
+  context_json  TEXT,
   created_at    INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_cls_msg ON classifications(message_id);
@@ -133,6 +137,43 @@ CREATE TABLE IF NOT EXISTS artefact_deployments (
   updated_at   INTEGER NOT NULL,
   UNIQUE (artefact_id, env_key)
 );
+
+-- Projects: per-user knowledge bases that can be attached to a chat.
+CREATE TABLE IF NOT EXISTS projects (
+  id           TEXT PRIMARY KEY,
+  user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name         TEXT NOT NULL,
+  description  TEXT NOT NULL DEFAULT '',
+  instructions TEXT NOT NULL DEFAULT '',
+  created_at   INTEGER NOT NULL,
+  updated_at   INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS project_files (
+  id           TEXT PRIMARY KEY,
+  project_id   TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  filename     TEXT NOT NULL,
+  mime         TEXT NOT NULL,
+  size_bytes   INTEGER NOT NULL,
+  content_text TEXT NOT NULL,
+  -- classified on upload by the on-prem inspector; excerpts inherit it
+  level        TEXT NOT NULL,
+  signals_json TEXT NOT NULL DEFAULT '[]',
+  rationale    TEXT NOT NULL DEFAULT '',
+  created_at   INTEGER NOT NULL
+);
+
+-- Retrieval index: one row per chunk, with its term frequencies for BM25.
+CREATE TABLE IF NOT EXISTS project_chunks (
+  id          TEXT PRIMARY KEY,
+  file_id     TEXT NOT NULL REFERENCES project_files(id) ON DELETE CASCADE,
+  project_id  TEXT NOT NULL,
+  seq         INTEGER NOT NULL,
+  text        TEXT NOT NULL,
+  tokens_json TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_chunks_project ON project_chunks(project_id);
 
 CREATE TABLE IF NOT EXISTS audit_log (
   id          TEXT PRIMARY KEY,

@@ -9,6 +9,7 @@ import { EgressBlockedError, getProvider, type ChatMessage } from "./llm/provide
 import { evaluate } from "./policy/engine";
 import { activeArtefact } from "./deployments";
 import { acquire, release } from "./environments";
+import { knowledgeBlock, ownsProject, retrieve, summarizeContext, withProjectContext } from "./projects";
 import { maxLevel, type EnvKey, type Level } from "./domain";
 
 /**
@@ -49,6 +50,8 @@ export interface RunInput {
   attachments?: AttachmentInput[];
   /** Title for a new thread; defaults to the request text. */
   title?: string;
+  /** Project whose knowledge should accompany the request. Binds the thread on first use. */
+  projectId?: string | null;
   maxTokens?: number;
   signal?: AbortSignal;
 }
@@ -119,6 +122,14 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
   else if (conv.title === "New request") renameConversation(conv.id, titleFrom(content));
   const convId = conv.id;
 
+  // A thread binds to at most one project and keeps it: that project's
+  // knowledge may already be part of the conversation.
+  let projectId = conv.project_id ?? null;
+  if (!projectId && input.projectId && ownsProject(user.id, input.projectId)) {
+    projectId = input.projectId;
+    db().prepare(`UPDATE conversations SET project_id = ? WHERE id = ?`).run(projectId, convId);
+  }
+
   const history = listMessages(convId);
   const priorFiles = threadAttachments(convId);
   const userMsgId = addMessage({ conversationId: convId, role: "user", content });
@@ -135,16 +146,27 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     type: "meta",
     conversationId: convId,
     isNewConversation: isNew,
+    projectId,
     attachments: files.map((f) => ({ filename: f.filename, size: Buffer.byteLength(f.text) })),
   });
 
   /* ---------- 1. inspect, before anything is dispatched --------------- */
   emit({ type: "inspecting" });
 
-  const cls = await classify({
+  // Retrieval runs inside the boundary, before classification: the knowledge
+  // that will travel with the request is part of what is being classified.
+  const ctx = projectId ? retrieve(projectId, content) : null;
+  const contextSummary = ctx ? summarizeContext(ctx) : null;
+
+  const inspected = await classify({
     prompt: content,
-    attachments: files.map((f) => ({ filename: f.filename, text: f.text })),
+    attachments: [
+      ...files.map((f) => ({ filename: f.filename, text: f.text })),
+      ...(ctx?.project.instructions ? [{ filename: "project instructions", text: ctx.project.instructions }] : []),
+    ],
   });
+  // Knowledge excerpts inherit the classification their file received at upload.
+  const cls = withProjectContext(inspected, ctx);
 
   // A thread never de-escalates: once it has held Secret, it stays sealed.
   const seal = maxLevel(conv.seal_level, cls.level);
@@ -153,10 +175,11 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
   const clsId = id("cls");
   db().prepare(
     `INSERT INTO classifications
-       (id, message_id, level, confidence, rationale, signals_json, inspector, latency_ms, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       (id, message_id, level, confidence, rationale, signals_json, inspector, latency_ms, context_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(clsId, userMsgId, cls.level, cls.confidence, cls.rationale,
-        JSON.stringify(cls.signals), cls.inspector, cls.latencyMs, now());
+        JSON.stringify(cls.signals), cls.inspector, cls.latencyMs,
+        contextSummary ? JSON.stringify(contextSummary) : null, now());
 
   emit({
     type: "classified",
@@ -169,6 +192,7 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     inspector: cls.inspector,
     latencyMs: cls.latencyMs,
     degraded: cls.degraded,
+    context: contextSummary,
   });
 
   /* ---------- 2. evaluate policy --------------------------------------- */
@@ -208,6 +232,8 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
       summary: `${seal} refused — ${decision.matchedPolicyName ?? "default deny"}`,
       detail: { level: cls.level, seal, pinned: input.preferred ?? "auto",
                 policy: decision.matchedPolicyName, reason: decision.reason,
+                project: contextSummary && { name: contextSummary.project, mode: contextSummary.mode,
+                                             files: [...new Set(contextSummary.excerpts.map((x) => x.filename))] },
                 signals: signalCodes, attachments: files.map((f) => f.filename) },
     });
 
@@ -247,7 +273,9 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     summary: `${seal} → ${chosen.name} via ${decision.matchedPolicyName}`,
     detail: { level: cls.level, seal, envKey, artefact: artefact?.ref, pinned, overrodePin,
               policy: decision.matchedPolicyName, signals: signalCodes,
-              attachments: files.map((f) => f.filename) },
+              attachments: files.map((f) => f.filename),
+              project: contextSummary && { name: contextSummary.project, mode: contextSummary.mode,
+                                           files: [...new Set(contextSummary.excerpts.map((x) => x.filename))] } },
   });
 
   /* ---------- 3. dispatch ------------------------------------------------ */
@@ -264,8 +292,11 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
         role: m.role as "user" | "assistant",
         content: m.role === "user" ? withAttachments(m.content, priorFiles.get(m.id) ?? []) : m.content,
       })),
-    { role: "user", content: withAttachments(content, files) },
+    { role: "user", content: knowledgeBlock(ctx) + withAttachments(content, files) },
   ];
+  const system = ctx?.project.instructions
+    ? `${SYSTEM}\n\nProject instructions from the user:\n${ctx.project.instructions}`
+    : SYSTEM;
 
   const started = Date.now();
   let text = "";
@@ -274,7 +305,7 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     // Simulated network hop between the core and the chosen environment.
     await sleep(chosen.net_ms);
     const stream = getProvider(envKey).stream({
-      messages, system: SYSTEM, maxTokens: input.maxTokens, signal: input.signal,
+      messages, system, maxTokens: input.maxTokens, signal: input.signal,
     });
     for await (const chunk of stream) {
       text += chunk;
@@ -297,7 +328,7 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
   }
 
   const latency = Date.now() - started;
-  const tokens = estTokens(withAttachments(content, files)) + estTokens(text);
+  const tokens = estTokens(system + knowledgeBlock(ctx) + withAttachments(content, files)) + estTokens(text);
   const cost = (tokens / 1000) * chosen.cost_per_1k;
   updateMessage(assistantId, {
     content: text, status: "ok", tokens, cost_usd: cost, latency_ms: latency,

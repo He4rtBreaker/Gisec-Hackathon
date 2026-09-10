@@ -135,6 +135,19 @@ The ledger lives at **Admin → Audit ledger**.
   ```
   Then click VERIFY CHAIN.
 
+## Projects (knowledge + RAG)
+
+- **Every user has Projects** (sidebar → Projects). A project has a name, a description, instructions and up to 25 text files, each up to 200 KB.
+- **Uploads are classified on-prem**, using the same inspector as chat requests.
+  - A file above the uploader's clearance is refused.
+  - A file containing credentials is refused.
+  - Either refusal is logged.
+- **To use a project,** pick it with the **Project** pill in the chat composer, or start a chat from the project page. A chat stays bound to the project it has used.
+- **How knowledge reaches the model:**
+  - **Small projects** (up to 8k characters) go into context whole.
+  - **Larger projects** are split into chunks. Each request retrieves the top excerpts using **BM25**, on-prem, before anything is dispatched.
+- **Security:** each excerpt carries its file's classification. A chat that retrieves Confidential knowledge is marked Confidential, so it can never reach Public Cloud. The Reasoning panel lists which files and parts were used.
+
 ## Admin console
 
 - **Overview:**

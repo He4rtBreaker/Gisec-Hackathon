@@ -7,6 +7,7 @@ import type { UiMessage } from "@/components/MessageList";
 import type { Inspection } from "@/components/InspectionCard";
 import type { Refusal } from "@/components/RefusalCard";
 import { ENV_META } from "@/lib/domain";
+import { projectOptions } from "@/lib/projects";
 
 export default async function ThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
@@ -67,6 +68,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
       initialMessages={messages}
       sealLevel={conv.seal_level}
       clearance={user.clearance}
+      projects={projectOptions(user.id)}
+      projectId={conv.project_id}
+      projectLocked={!!conv.project_id}
     />
   );
 }
@@ -74,11 +78,11 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
 /** Rehydrate a stored classification for display. */
 function loadInspection(userMessageId: string): Inspection | null {
   const row = db().prepare(
-    `SELECT level, confidence, rationale, signals_json, inspector, latency_ms
+    `SELECT level, confidence, rationale, signals_json, inspector, latency_ms, context_json
        FROM classifications WHERE message_id = ? ORDER BY created_at DESC LIMIT 1`
   ).get(userMessageId) as {
     level: Inspection["level"]; confidence: number; rationale: string;
-    signals_json: string; inspector: string; latency_ms: number;
+    signals_json: string; inspector: string; latency_ms: number; context_json: string | null;
   } | undefined;
   if (!row) return null;
 
@@ -97,6 +101,7 @@ function loadInspection(userMessageId: string): Inspection | null {
     degraded: false,
     routeReason: route?.reason,
     artefact: route?.artefact_ref ?? undefined,
+    context: row.context_json ? (JSON.parse(row.context_json) as Inspection["context"]) : null,
   };
 }
 

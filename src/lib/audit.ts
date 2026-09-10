@@ -51,6 +51,7 @@ export const AUDIT_GROUPS = {
   auth:    { label: "Access",      prefixes: ["auth."] },
   request: { label: "Requests",    prefixes: ["request.", "egress."] },
   policy:  { label: "Policy",      prefixes: ["policy."] },
+  project: { label: "Projects",    prefixes: ["project."] },
   deploy:  { label: "Deployments", prefixes: ["artefact.", "deploy.", "diode."] },
   env:     { label: "Operations",  prefixes: ["env.", "demo."] },
 } as const;
