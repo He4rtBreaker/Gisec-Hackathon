@@ -143,7 +143,17 @@ export default function AdminNav({ user, conversations }: {
         </div>
 
         {conversations.length === 0 ? (
-          <p className="px-2.5 text-[12px] leading-relaxed text-ink-faint">No chats yet. Start one above.</p>
+          <div className="flex flex-col items-center px-2.5 py-3 text-center">
+            <img
+              src="/illustrations/assistant-ready.png"
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="mb-2 h-[76px] w-[76px] object-contain opacity-90 select-none"
+              draggable={false}
+            />
+            <p className="text-[12px] leading-relaxed text-ink-faint">No chats yet. Start one above.</p>
+          </div>
         ) : (
           <ul className="space-y-0.5">
             {conversations.map((c) => {
