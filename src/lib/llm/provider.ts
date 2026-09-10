@@ -190,7 +190,11 @@ class AnthropicProvider implements Provider {
     return JSON.stringify({
       model: this.model,
       max_tokens: opts.maxTokens ?? 2048,
-      temperature: opts.temperature ?? 0.7,
+      // Newer Claude models (Sonnet 5+) reject an explicit `temperature`.
+      // Only send it when the caller asked for a non-default value.
+      ...(opts.temperature !== undefined && opts.temperature !== 0.7
+        ? { temperature: opts.temperature }
+        : {}),
       ...(opts.system ? { system: opts.system } : {}),
       messages: opts.messages
         .filter((m) => m.role !== "system")
