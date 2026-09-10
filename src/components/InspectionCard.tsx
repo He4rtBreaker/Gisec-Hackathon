@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LEVEL_META, type Level } from "@/lib/domain";
 import type { ContextSummary } from "@/lib/projects";
 
@@ -37,15 +37,38 @@ const LEVEL_STYLE: Record<Level, { text: string; dot: string; ring: string }> = 
   SECRET:       { text: "text-airgap",   dot: "bg-airgap",   ring: "border-airgap/35 bg-airgap-soft" },
 };
 
+/** What the on-prem inspector is doing, in order. Cycles while it runs. */
+const INSPECT_STEPS = [
+  "Reading the request",
+  "Matching data patterns",
+  "Weighing sensitivity",
+  "Checking your clearance",
+  "Consulting routing policy",
+];
+
 /** Live state while the inspector is still running. */
 export function InspectingStrip() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setStep((n) => (n + 1) % INSPECT_STEPS.length), 850);
+    return () => clearInterval(t);
+  }, []);
+
   return (
     <div className="mz-anim-in flex items-center gap-2.5 rounded-lg border border-line bg-surface px-3 py-2">
-      <span className="relative flex h-1.5 w-1.5">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cloud opacity-70" />
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cloud" />
+      <img
+        src="/icons/scan.svg"
+        alt=""
+        aria-hidden
+        className="mz-anim-hunt h-[15px] w-[15px] shrink-0 select-none"
+        draggable={false}
+      />
+      <span className="mz-label text-cloud transition-opacity duration-200">
+        {INSPECT_STEPS[step]}…
       </span>
-      <span className="mz-label text-cloud">Inspecting on sovereign infrastructure…</span>
+      <span className="mz-label ml-auto hidden shrink-0 normal-case tracking-normal text-ink-faint sm:block">
+        on sovereign infrastructure
+      </span>
     </div>
   );
 }
@@ -99,6 +122,12 @@ export default function InspectionCard({ data }: { data: Inspection }) {
           <span className="flex items-center gap-1 rounded border border-line bg-base px-1.5 py-0.5
                            font-mono text-[9px] tracking-[0.10em] text-ink-dim transition
                            group-hover:border-ink-faint group-hover:text-ink-mid">
+            <svg viewBox="0 0 12 12" aria-hidden
+                 className="h-[9px] w-[9px] shrink-0 opacity-80 transition group-hover:opacity-100">
+              <circle cx="5" cy="5" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M7.6 7.6L10.5 10.5" fill="none" stroke="currentColor"
+                    strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
             {open ? "HIDE" : "REASONING"}
             <svg viewBox="0 0 10 6" aria-hidden
                  className={`h-[6px] w-[10px] transition-transform duration-150 ${open ? "rotate-180" : ""}`}>

@@ -77,6 +77,16 @@ export default function ChatView({
     setError(null);
     setBusy(true);
 
+    // Keep the "inspecting" strip on screen long enough to read, even when the
+    // inspector answers instantly (mock provider, cache hits). UI only — the
+    // server-side decision is unchanged.
+    const sendStart = Date.now();
+    const MIN_INSPECT_MS = 1900;
+    const holdInspect = async () => {
+      const left = MIN_INSPECT_MS - (Date.now() - sendStart);
+      if (left > 0) await new Promise((r) => setTimeout(r, left));
+    };
+
     const localUser: UiMessage = {
       id: `local_${Date.now()}`, role: "user", content: text || "Review the attached file.",
       status: "ok", envKey: null,
@@ -139,6 +149,7 @@ export default function ChatView({
               rationale: string; signals: Inspection["signals"]; inspector: string;
               latencyMs: number; degraded: boolean; context: Inspection["context"];
             };
+            await holdInspect();
             setSeal(e.sealLevel);
             applyToLast((m) => ({
               ...m,
@@ -168,6 +179,7 @@ export default function ChatView({
             const e = evt as unknown as {
               reason: string; policyName: string | null; trace: Refusal["trace"];
             };
+            await holdInspect();
             applyToLast((m) => ({
               ...m,
               inspecting: false,
