@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Level } from "@/lib/domain";
-import { useNav } from "@/components/nav/useNav";
+import { navSet, useNav } from "@/components/nav/useNav";
 import NavToggle from "@/components/nav/NavToggle";
 
 interface ConvSummary {
@@ -38,12 +38,16 @@ export default function Sidebar({ user, conversations }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { collapsed } = useNav();
+  const { collapsed, peek, animate } = useNav();
 
   return (
     <aside
-      className={`flex w-[264px] flex-col overflow-hidden border-r border-line bg-surface
-        ${collapsed ? "hidden" : "relative shrink-0"}`}
+      onMouseLeave={collapsed ? () => navSet({ peek: false }) : undefined}
+      className={`flex w-[264px] flex-col overflow-hidden bg-surface
+        ${animate ? "transition-transform duration-200" : ""}
+        ${collapsed
+          ? `fixed inset-y-0 left-0 z-40 border-r border-line shadow-2xl ${peek ? "translate-x-0" : "-translate-x-full"}`
+          : "relative shrink-0 border-r border-line"}`}
     >
       {/* Brand */}
       <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-3.5">
