@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Level } from "@/lib/domain";
-import { navSet, useNav } from "@/components/nav/useNav";
+import { useNav } from "@/components/nav/useNav";
 import NavToggle from "@/components/nav/NavToggle";
 
 /**
@@ -75,7 +75,7 @@ export default function AdminNav({ user, conversations }: {
   conversations: ChatSummary[];
 }) {
   const pathname = usePathname();
-  const { collapsed, peek, animate } = useNav();
+  const { collapsed } = useNav();
   const govActive = GOVERNANCE.some((n) => pathname.startsWith(n.href));
   const [govOpen, setGovOpen] = useState(govActive);
 
@@ -94,12 +94,8 @@ export default function AdminNav({ user, conversations }: {
 
   return (
     <aside
-      onMouseLeave={collapsed ? () => navSet({ peek: false }) : undefined}
-      className={`flex w-[232px] flex-col overflow-hidden bg-surface
-        ${animate ? "transition-transform duration-200" : ""}
-        ${collapsed
-          ? `fixed inset-y-0 left-0 z-40 border-r border-line shadow-2xl ${peek ? "translate-x-0" : "-translate-x-full"}`
-          : "relative shrink-0 border-r border-line"}`}
+      className={`flex w-[232px] flex-col overflow-hidden border-r border-line bg-surface
+        ${collapsed ? "hidden" : "relative shrink-0"}`}
     >
       <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-3.5">
         <span className="font-serif text-[24px] font-medium tracking-tight text-ink">Mizan</span>
