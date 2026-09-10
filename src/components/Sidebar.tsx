@@ -50,9 +50,9 @@ export default function Sidebar({ user, conversations }: Props) {
           : "relative shrink-0 border-r border-line"}`}
     >
       {/* Brand */}
-      <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-4">
-        <span className="font-mono text-[15px] font-semibold tracking-[0.24em]">MIZAN</span>
-        <span className="mz-label text-[9px]">Orchestrator</span>
+      <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-3.5">
+        <span className="font-serif text-[24px] font-medium tracking-tight text-ink">Mizan</span>
+        <span className="mz-label text-[8.5px]">Orchestrator</span>
       </div>
 
       <div className="p-3">
