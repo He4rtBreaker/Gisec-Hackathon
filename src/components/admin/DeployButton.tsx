@@ -7,8 +7,8 @@ import type { EnvKey } from "@/lib/domain";
 type Op = "activate" | "export" | "transfer" | "verify";
 
 const TONE = {
-  primary: "bg-cloud text-white hover:brightness-110",
-  airgap:  "bg-airgap text-white hover:brightness-110",
+  primary: "bg-primary text-white hover:opacity-90",
+  airgap:  "bg-airgap text-white hover:opacity-90",
   ghost:   "border border-line bg-overlay text-ink-mid hover:border-ink-faint hover:text-ink",
 } as const;
 

@@ -1,39 +1,53 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Editorial pairing — serif display, humanist sans body, mono for data */
+  --font-serif: "Cormorant Garamond", "Tiempos Headline", Garamond, "Times New Roman", serif;
+  --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
-  /* Surfaces — neutral hue 260, light sovereign console */
-  --color-base:      oklch(0.985 0.003 260);
-  --color-surface:   oklch(0.970 0.004 260);
-  --color-raised:    oklch(0.940 0.004 260);
-  --color-overlay:   oklch(1.000 0     260);
-  --color-line:      oklch(0.900 0.006 260);
-  --color-line-soft: oklch(0.940 0.004 260);
+  /* Surfaces — warm tinted cream, never pure white */
+  --color-base:      #faf9f5;  /* page floor */
+  --color-surface:   #f5f0e8;  /* soft bands, section dividers */
+  --color-raised:    #efe9de;  /* cards, chips */
+  --color-overlay:   #fdfcf8;  /* panels, popovers — a hair above canvas */
+  --color-line:      #e6dfd8;  /* hairline on cream */
+  --color-line-soft: #ebe6df;  /* barely-visible divider */
 
-  /* Text */
-  --color-ink:       oklch(0.26 0.012 260);
-  --color-ink-mid:   oklch(0.45 0.012 260);
-  --color-ink-dim:   oklch(0.58 0.012 260);
-  --color-ink-faint: oklch(0.68 0.010 260);
+  /* Dark navy product surfaces */
+  --color-dark:          #181715;
+  --color-dark-elevated: #252320;
+  --color-dark-soft:     #1f1e1b;
+  --color-on-dark:       #faf9f5;
+  --color-on-dark-soft:  #a09d96;
 
-  /* Environment + classification accents */
-  --color-cloud:      oklch(0.55 0.15 250);
-  --color-cloud-soft: oklch(0.55 0.15 250 / 0.10);
-  --color-onprem:      oklch(0.52 0.13 155);
-  --color-onprem-soft: oklch(0.52 0.13 155 / 0.10);
-  --color-airgap:      oklch(0.50 0.18 300);
-  --color-airgap-soft: oklch(0.50 0.18 300 / 0.10);
-  --color-official:      oklch(0.53 0.11 215);
-  --color-official-soft: oklch(0.53 0.11 215 / 0.10);
+  /* Text — warm ink */
+  --color-ink:       #141413;
+  --color-ink-mid:   #3d3d3a;
+  --color-ink-dim:   #6c6a64;
+  --color-ink-faint: #8e8b82;
+
+  /* Brand — coral. Scarce on buttons, generous on full-bleed callouts. */
+  --color-primary:        #cc785c;
+  --color-primary-active:  #a9583e;
+  --color-primary-soft:   #cc785c1f;
+
+  /* Environment + classification signals — warm-harmonised, kept distinct */
+  --color-cloud:       #4f96a4;            /* PUBLIC · Public Cloud */
+  --color-cloud-soft:  #4f96a41f;
+  --color-official:      #c1863c;          /* OFFICIAL */
+  --color-official-soft: #c1863c1f;
+  --color-onprem:      #5c8b50;            /* CONFIDENTIAL · Sovereign On-Prem */
+  --color-onprem-soft: #5c8b501f;
+  --color-airgap:      #4a4440;            /* SECRET · Air-Gapped Enclave */
+  --color-airgap-soft: #4a44401a;
 
   /* Status */
-  --color-deny:      oklch(0.55 0.20 27);
-  --color-deny-soft: oklch(0.55 0.20 27 / 0.09);
-  --color-warn:      oklch(0.62 0.14 70);
-  --color-warn-soft: oklch(0.62 0.14 70 / 0.11);
-  --color-ok:        oklch(0.52 0.13 155);
+  --color-deny:      #c64545;
+  --color-deny-soft: #c645451a;
+  --color-warn:      #c99a1f;
+  --color-warn-soft: #c99a1f1f;
+  --color-ok:        #5c8b50;
 }
 
 @layer base {
@@ -43,15 +57,21 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  /* Serif display — weight 500, negative tracking. The editorial voice. */
+  h1, h2, h3, .mz-display {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: oklch(0.86 0.008 260); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: oklch(0.78 0.010 260); }
+  ::-webkit-scrollbar-thumb { background: #d9d0c4; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c7bcac; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::selection { background: var(--color-cloud-soft); }
+  ::selection { background: var(--color-primary-soft); }
 }
 
 @layer components {
-  /* Small uppercase console label */
+  /* Small uppercase data label */
   .mz-label {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -62,25 +82,40 @@
   .mz-panel {
     background: var(--color-overlay);
     border: 1px solid var(--color-line);
-    border-radius: 10px;
+    border-radius: 12px;
   }
   .mz-field {
-    background: var(--color-overlay);
+    background: var(--color-base);
     border: 1px solid var(--color-line);
     border-radius: 8px;
     color: var(--color-ink);
     outline: none;
   }
   .mz-field:focus {
-    border-color: var(--color-cloud);
-    box-shadow: 0 0 0 3px var(--color-cloud-soft);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
   }
-  /* Elevation for popovers — light themes need shadow, not brightness */
+  /* Coral primary CTA */
+  .mz-btn {
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+  }
+  .mz-btn:hover { background: var(--color-primary-active); }
+  .mz-btn:active { background: var(--color-primary-active); }
+  .mz-btn:disabled {
+    background: var(--color-primary-disabled, #e6dfd8);
+    color: var(--color-ink-dim);
+    cursor: not-allowed;
+  }
+  /* Elevation for popovers — warm, minimal */
   .mz-pop {
     background: var(--color-overlay);
     border: 1px solid var(--color-line);
-    box-shadow: 0 1px 2px oklch(0.55 0.02 260 / 0.06),
-                0 8px 24px oklch(0.55 0.02 260 / 0.12);
+    box-shadow: 0 1px 3px rgba(20, 20, 19, 0.08),
+                0 12px 32px rgba(20, 20, 19, 0.12);
   }
 }
 
@@ -94,12 +129,20 @@
   50%      { transform: translate(1px, 2px) rotate(-2deg); }
   75%      { transform: translate(-2px, 0) rotate(5deg); }
 }
+/* Hand-drawn illustrations breathe — a slow bob + faint sway. */
+@keyframes mz-float {
+  0%, 100% { transform: translateY(0) rotate(-0.6deg); }
+  50%      { transform: translateY(-6px) rotate(0.6deg); }
+}
+@keyframes mz-sway {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50%      { transform: rotate(1.6deg); }
+}
 .mz-anim-in { animation: mz-in 0.24s ease-out both; }
 .mz-anim-pulse { animation: mz-pulse 1.6s ease-in-out infinite; }
 .mz-anim-hunt { animation: mz-hunt 2.4s ease-in-out infinite; transform-origin: 60% 60%; }
-@media (prefers-reduced-motion: reduce) {
-  .mz-anim-hunt { animation: none; }
-}
+.mz-anim-float { animation: mz-float 5.5s ease-in-out infinite; }
+.mz-anim-sway { animation: mz-sway 4s ease-in-out infinite; transform-origin: 50% 85%; }
 
 /* Topology: busy rings, arrival flashes, flowing routes */
 @keyframes mz-ring { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
@@ -111,5 +154,6 @@
 .mz-flow { stroke-dasharray: 6 8; animation: mz-flow 0.8s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
+  .mz-anim-hunt, .mz-anim-float, .mz-anim-sway,
   .mz-anim-ring, .mz-anim-hit, .mz-anim-spin, .mz-flow, .mz-anim-pulse { animation: none; }
 }

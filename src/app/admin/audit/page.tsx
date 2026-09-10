@@ -42,7 +42,7 @@ export default async function AuditPage({
     <div className="mx-auto max-w-[1180px] space-y-6 px-8 py-8">
       <header>
         <div className="mz-label">Audit ledger</div>
-        <h1 className="mt-1 text-[21px] font-semibold tracking-tight">Every decision, with its justification</h1>
+        <h1 className="mt-1 text-[28px] tracking-tight">Every decision, with its justification</h1>
         <p className="mt-1.5 max-w-[700px] text-[13px] leading-relaxed text-ink-dim">
           Append-only and hash-chained. Each entry commits to its own content and to the entry before
           it, so editing, deleting or re-ordering any past entry breaks every link after it.
@@ -86,7 +86,7 @@ export default async function AuditPage({
               alt=""
               aria-hidden
               loading="lazy"
-              className="mb-3 h-[104px] w-[104px] object-contain opacity-90 select-none"
+              className="mz-anim-float mb-3 h-[104px] w-[104px] object-contain opacity-90 select-none"
               draggable={false}
             />
             <p className="text-[12.5px] text-ink-faint">No entries match.</p>

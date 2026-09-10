@@ -33,7 +33,7 @@ export default async function ProjectsPage() {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="mz-label">Workspace</div>
-            <h1 className="mt-1 text-[21px] font-semibold tracking-tight">Projects</h1>
+            <h1 className="mt-1 text-[28px] tracking-tight">Projects</h1>
             <p className="mt-1.5 max-w-[620px] text-[13px] leading-relaxed text-ink-dim">
               Group chats around shared knowledge. Files are classified on upload, and any chat
               that draws on them inherits that classification.
@@ -49,7 +49,7 @@ export default async function ProjectsPage() {
               alt=""
               aria-hidden
               loading="lazy"
-              className="h-[120px] w-[120px] object-contain opacity-95 select-none"
+              className="mz-anim-float h-[120px] w-[120px] object-contain opacity-95 select-none"
               draggable={false}
             />
             <p className="mt-3 text-[14px] text-ink-mid">No projects yet</p>
@@ -64,7 +64,7 @@ export default async function ProjectsPage() {
                 key={p.id}
                 href={`/projects/${p.id}`}
                 className="mz-panel block p-4 transition hover:border-ink-faint
-                           hover:shadow-[0_2px_10px_oklch(0.55_0.02_260/0.08)]"
+                           hover:shadow-[0_2px_10px_rgba(20,20,19,0.08)]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className="min-w-0 truncate text-[14px] font-medium">{p.name}</span>

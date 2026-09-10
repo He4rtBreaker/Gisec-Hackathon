@@ -79,7 +79,7 @@ export default function DeploymentsPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="mz-label">Model deployments</div>
-          <h1 className="mt-1 font-mono text-[21px] font-semibold tracking-tight">
+          <h1 className="mt-1 text-[28px] tracking-tight">
             {artefacts[0]?.name ?? "No artefacts registered"}
           </h1>
           <p className="mt-1.5 max-w-[640px] text-[13px] leading-relaxed text-ink-dim">

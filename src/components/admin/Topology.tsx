@@ -96,8 +96,8 @@ function hostOf(endpoint: string): string {
   try { return new URL(endpoint).host; } catch { return endpoint; }
 }
 
-const shadow = "shadow-[0_2px_10px_oklch(0.55_0.02_260/0.07)]";
-const shadowHover = "hover:shadow-[0_6px_20px_oklch(0.55_0.02_260/0.13)]";
+const shadow = "shadow-[0_2px_10px_rgba(20,20,19,0.07)]";
+const shadowHover = "hover:shadow-[0_6px_20px_rgba(20,20,19,0.13)]";
 
 export default function Topology({ initial, recent, inspector, rules, users, avgInspectMs, refusals }: TopologyProps) {
   const [live, setLive] = useState(initial);
@@ -512,7 +512,7 @@ function Popover({ node, onClose, children }: { node: NodeKey; onClose: () => vo
   return (
     <div data-pop style={POP_PLACE[node]} className="absolute z-20 w-[290px]">
       <div className="mz-anim-in relative rounded-[18px] border border-line bg-overlay p-4
-                      shadow-[0_12px_40px_oklch(0.4_0.02_260/0.16)]">
+                      shadow-[0_12px_40px_rgba(20,20,19,0.14)]">
         <button type="button" onClick={onClose} aria-label="Close"
                 className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-raised text-[10px]
                            text-ink-dim transition hover:bg-line">✕</button>
