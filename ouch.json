@@ -1,0 +1,52 @@
+{
+  "style": "anthropic-claude-hand-drawn",
+  "source": "Icons8 Ouch (https://icons8.com/illustrations)",
+  "note": "Hand-drawn ink + single warm watercolor accent. UI-only additions for empty / error / hero states. PNG (no SVG available for this style).",
+  "slots": {
+    "chat-empty": {
+      "id": "6a427dce79534a1e16a26c64",
+      "heading": "Magnifying glass inspecting document symbol for search and review",
+      "file": "public/illustrations/inspect-document.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/components/MessageList.tsx (Empty)"
+    },
+    "sidebar-empty": {
+      "id": "6a6c7788a6569e563cb70317",
+      "heading": "Voice assistant sparkle held in hand with messaging bubble nearby",
+      "file": "public/illustrations/assistant-ready.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/components/Sidebar.tsx (no threads)"
+    },
+    "refusal": {
+      "id": "6a9812a30e92acb186740f48",
+      "heading": "Lock held in hand symbolizing data protection and online security",
+      "file": "public/illustrations/refused-sealed.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/components/RefusalCard.tsx"
+    },
+    "audit-empty": {
+      "id": "6a295d0ff8947031464999dc",
+      "heading": "Document storage box for office filing system and record keeping",
+      "file": "public/illustrations/audit-empty.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/app/admin/audit/page.tsx (no rows)"
+    },
+    "login-hero": {
+      "id": "69ab0cf64707ff0001057d08",
+      "heading": "Cybersecurity and data protection, Privacy and information security",
+      "file": "public/illustrations/sovereign-shield.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/app/login/page.tsx (identity brief panel)"
+    }
+  }
+}
