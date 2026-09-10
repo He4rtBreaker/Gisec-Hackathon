@@ -146,9 +146,19 @@ export default function ProjectKnowledge({ projectId, instructions, files, chars
           )}
 
           {files.length === 0 ? (
-            <p className="py-3 text-center text-[12px] text-ink-faint">
-              No files yet. Text files up to 200 KB — anything above your {clearance} clearance is refused.
-            </p>
+            <div className="flex flex-col items-center py-4 text-center">
+              <img
+                src="/illustrations/knowledge-empty.png"
+                alt=""
+                aria-hidden
+                loading="lazy"
+                className="mb-2.5 h-[96px] w-[96px] object-contain opacity-90 select-none"
+                draggable={false}
+              />
+              <p className="max-w-[320px] text-[12px] leading-relaxed text-ink-faint">
+                No files yet. Text files up to 200 KB — anything above your {clearance} clearance is refused.
+              </p>
+            </div>
           ) : (
             <ul className="divide-y divide-line-soft">
               {files.map((f) => (

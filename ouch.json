@@ -19,7 +19,25 @@
       "width": 640,
       "height": 640,
       "free_distribution": false,
-      "used_in": "src/components/Sidebar.tsx (no threads)"
+      "used_in": "src/components/Sidebar.tsx + src/components/admin/AdminNav.tsx (no chats)"
+    },
+    "projects-empty": {
+      "id": "68a9150940f8ae0001d0e19e",
+      "heading": "Hand flipping through documents",
+      "file": "public/illustrations/projects-empty.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/app/projects/page.tsx (no projects)"
+    },
+    "knowledge-empty": {
+      "id": "69cec2b47c1c2df2ff4e3ffe",
+      "heading": "Drag and drop file upload, Dragging document to drop zone",
+      "file": "public/illustrations/knowledge-empty.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/components/projects/ProjectKnowledge.tsx (no files)"
     },
     "refusal": {
       "id": "6a9812a30e92acb186740f48",

@@ -44,10 +44,14 @@ export default async function ProjectsPage() {
 
         {projects.length === 0 ? (
           <div className="mz-panel flex flex-col items-center px-6 py-14 text-center">
-            <svg viewBox="0 0 16 14" className="h-7 w-8 text-ink-faint" aria-hidden>
-              <path d="M1.5 3.2c0-.7.5-1.2 1.2-1.2h3.1l1.5 1.6h5.9c.7 0 1.2.5 1.2 1.2v6.5c0 .7-.5 1.2-1.2 1.2H2.7c-.7 0-1.2-.5-1.2-1.2z"
-                    fill="none" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
-            </svg>
+            <img
+              src="/illustrations/projects-empty.png"
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="h-[120px] w-[120px] object-contain opacity-95 select-none"
+              draggable={false}
+            />
             <p className="mt-3 text-[14px] text-ink-mid">No projects yet</p>
             <p className="mt-1 max-w-[380px] text-[12.5px] leading-relaxed text-ink-dim">
               Create a project, add documents, and select it in any chat to answer with that knowledge.
