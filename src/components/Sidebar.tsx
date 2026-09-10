@@ -60,9 +60,19 @@ export default function Sidebar({ user, conversations }: Props) {
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         <div className="mz-label px-2 pb-2 pt-1">Threads</div>
         {conversations.length === 0 && (
-          <p className="px-2 text-[12px] leading-relaxed text-ink-faint">
-            No requests yet. Start one above.
-          </p>
+          <div className="flex flex-col items-center px-2 py-3 text-center">
+            <img
+              src="/illustrations/assistant-ready.png"
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="mb-2 h-[76px] w-[76px] object-contain opacity-90 select-none"
+              draggable={false}
+            />
+            <p className="text-[12px] leading-relaxed text-ink-faint">
+              No requests yet. Start one above.
+            </p>
+          </div>
         )}
         <ul className="space-y-0.5">
           {conversations.map((c) => {

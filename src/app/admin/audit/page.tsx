@@ -80,7 +80,17 @@ export default async function AuditPage({
       {/* ---- entries ---------------------------------------------------- */}
       <section className="mz-panel overflow-hidden">
         {rows.length === 0 ? (
-          <p className="px-4 py-5 text-[12.5px] text-ink-faint">No entries match.</p>
+          <div className="flex flex-col items-center px-4 py-10 text-center">
+            <img
+              src="/illustrations/audit-empty.png"
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="mb-3 h-[104px] w-[104px] object-contain opacity-90 select-none"
+              draggable={false}
+            />
+            <p className="text-[12.5px] text-ink-faint">No entries match.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <div className="min-w-[860px] divide-y divide-line-soft">
