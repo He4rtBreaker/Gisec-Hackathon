@@ -20,8 +20,8 @@ export default function NewProjectButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full bg-cloud px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.08em]
-                   text-white transition hover:brightness-110"
+        className="rounded-full bg-primary px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.08em]
+                   text-white transition hover:opacity-90"
       >
         + NEW PROJECT
       </button>
@@ -37,7 +37,7 @@ export default function NewProjectButton() {
             aria-modal="true"
             aria-label="Create a project"
             className="mz-anim-in w-full max-w-[520px] rounded-[18px] border border-line bg-overlay p-5
-                       shadow-[0_12px_40px_oklch(0.4_0.02_260/0.16)]"
+                       shadow-[0_12px_40px_rgba(20,20,19,0.14)]"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -69,8 +69,8 @@ export default function NewProjectButton() {
                 CANCEL
               </button>
               <button type="submit" disabled={pending}
-                      className="rounded-full bg-cloud px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
-                                 text-white transition hover:brightness-110 disabled:opacity-60">
+                      className="rounded-full bg-primary px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
+                                 text-white transition hover:opacity-90 disabled:opacity-60">
                 {pending ? "CREATING…" : "CREATE PROJECT"}
               </button>
             </div>

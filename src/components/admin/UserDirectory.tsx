@@ -158,7 +158,7 @@ function UserPopup({ userId, onClose }: { userId: string; onClose: () => void })
     >
       <div role="dialog" aria-modal="true" aria-label={u ? `${u.name} — user detail` : "User detail"}
            className="mz-anim-in flex max-h-[88vh] w-full max-w-[760px] flex-col overflow-hidden rounded-[18px]
-                      border border-line bg-overlay shadow-[0_12px_40px_oklch(0.4_0.02_260/0.16)]">
+                      border border-line bg-overlay shadow-[0_12px_40px_rgba(20,20,19,0.14)]">
         {/* header */}
         <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-4">
           <div className="flex min-w-0 items-center gap-3">

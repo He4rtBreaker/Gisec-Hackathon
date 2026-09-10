@@ -178,9 +178,9 @@ export default function Composer({
                 type="button"
                 onClick={submit}
                 disabled={!value.trim() && !files.length}
-                className="shrink-0 rounded-full bg-cloud px-4 py-1.5 font-mono text-[11px]
+                className="shrink-0 rounded-full bg-primary px-4 py-1.5 font-mono text-[11px]
                            font-semibold tracking-[0.10em] text-white transition
-                           hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-30"
+                           hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 SEND
               </button>

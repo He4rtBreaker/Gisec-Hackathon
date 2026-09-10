@@ -29,8 +29,8 @@ export default function RegisterVersionForm({ suggested }: { suggested: string }
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full bg-cloud px-4 py-1.5 font-mono text-[11px] font-semibold
-                     tracking-[0.08em] text-white transition hover:brightness-110 disabled:opacity-60"
+          className="rounded-full bg-primary px-4 py-1.5 font-mono text-[11px] font-semibold
+                     tracking-[0.08em] text-white transition hover:opacity-90 disabled:opacity-60"
         >
           {pending ? "SIGNING…" : "REGISTER & SIGN"}
         </button>

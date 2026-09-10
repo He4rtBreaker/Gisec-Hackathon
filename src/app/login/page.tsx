@@ -9,16 +9,16 @@ export default async function LoginPage() {
   return (
     <main className="min-h-screen grid lg:grid-cols-[1.05fr_1fr]">
       {/* Left — identity brief */}
-      <section className="relative hidden lg:flex flex-col justify-between p-12 border-r border-line overflow-hidden">
+      <section className="relative hidden lg:flex flex-col justify-between bg-surface p-12 border-r border-line overflow-hidden">
         <div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 22% 18%, oklch(0.55 0.15 250 / 0.07), transparent 42%)," +
-              "radial-gradient(circle at 78% 72%, oklch(0.50 0.18 300 / 0.06), transparent 45%)," +
-              "linear-gradient(oklch(0.55 0.02 260 / 0.06) 1px, transparent 1px)," +
-              "linear-gradient(90deg, oklch(0.55 0.02 260 / 0.06) 1px, transparent 1px)",
+              "radial-gradient(circle at 20% 16%, rgba(204,120,92,0.10), transparent 44%)," +
+              "radial-gradient(circle at 82% 78%, rgba(93,184,166,0.08), transparent 46%)," +
+              "linear-gradient(rgba(20,20,19,0.04) 1px, transparent 1px)," +
+              "linear-gradient(90deg, rgba(20,20,19,0.04) 1px, transparent 1px)",
             backgroundSize: "100% 100%, 100% 100%, 44px 44px, 44px 44px",
           }}
         />
@@ -35,7 +35,7 @@ export default async function LoginPage() {
             src="/illustrations/sovereign-shield.png"
             alt=""
             aria-hidden
-            className="mt-10 h-[200px] w-[200px] object-contain opacity-95 select-none"
+            className="mz-anim-float mt-10 h-[200px] w-[200px] object-contain opacity-95 select-none"
             draggable={false}
           />
         </div>
@@ -67,7 +67,7 @@ export default async function LoginPage() {
             <span className="mz-label">Orchestrator</span>
           </div>
 
-          <h1 className="text-[26px] font-semibold tracking-tight">Sign in</h1>
+          <h1 className="text-[31px] tracking-tight">Sign in</h1>
           <p className="mt-2 text-[13px] text-ink-dim">
             Your clearance determines which environments you may reach.
           </p>

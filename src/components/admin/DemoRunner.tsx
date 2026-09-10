@@ -95,8 +95,8 @@ export default function DemoRunner({ scenarios }: { scenarios: ScenarioView[] })
             type="button"
             onClick={run}
             disabled={running}
-            className="rounded-full bg-cloud px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.08em]
-                       text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60"
+            className="rounded-full bg-primary px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.08em]
+                       text-white transition hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
           >
             {running ? "RUNNING…" : "▶ RUN DEMO SEQUENCE"}
           </button>

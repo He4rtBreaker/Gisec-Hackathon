@@ -35,7 +35,7 @@ export default async function OverviewPage({
         <ViewTabs active="users" />
         <header>
           <div className="mz-label">Overview</div>
-          <h1 className="mt-1 text-[21px] font-semibold tracking-tight">User management</h1>
+          <h1 className="mt-1 text-[28px] tracking-tight">User management</h1>
           <p className="mt-1.5 max-w-[660px] text-[13px] leading-relaxed text-ink-dim">
             Everyone with access to Mizan, what they are cleared to handle, and every request they
             have made. Select a user to open their profile and history.
@@ -62,7 +62,7 @@ export default async function OverviewPage({
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="mz-label">Overview</div>
-          <h1 className="mt-1 text-[21px] font-semibold tracking-tight">Workload topology</h1>
+          <h1 className="mt-1 text-[28px] tracking-tight">Workload topology</h1>
           <p className="mt-1.5 max-w-[660px] text-[13px] leading-relaxed text-ink-dim">
             Watch requests move through the platform as they happen. Each one is inspected on-prem,
             matched against policy and dispatched to the environment accredited to hold it — or refused.
@@ -181,7 +181,7 @@ function ViewTabs({ active }: { active: "workload" | "users" }) {
           aria-current={active === t.key ? "page" : undefined}
           className={`rounded-full px-4 py-1.5 text-[12.5px] transition ${
             active === t.key
-              ? "bg-overlay font-medium text-ink shadow-[0_1px_4px_oklch(0.55_0.02_260/0.14)]"
+              ? "bg-overlay font-medium text-ink shadow-[0_1px_4px_rgba(20,20,19,0.14)]"
               : "text-ink-dim hover:text-ink-mid"}`}
         >
           {t.label}
