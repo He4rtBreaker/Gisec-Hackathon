@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { Level } from "@/lib/domain";
 
 /**
@@ -9,12 +10,41 @@ import type { Level } from "@/lib/domain";
  * sees one consistent navigation wherever they are.
  */
 
-const NAV = [
-  { href: "/admin",             label: "Overview",     hint: "Workload · users · demo", exact: true },
-  { href: "/admin/policies",    label: "Policies",     hint: "Routing rules · simulator" },
+interface NavEntry { href: string; label: string; hint: string; exact?: boolean }
+
+const PRIMARY: NavEntry[] = [
+  { href: "/admin",          label: "Overview", hint: "Workload · users · demo", exact: true },
+  { href: "/admin/policies", label: "Policies", hint: "Routing rules · simulator" },
+];
+
+/** Collapsed by default; opens on its own pages and remembers the choice. */
+const GOVERNANCE: NavEntry[] = [
   { href: "/admin/deployments", label: "Deployments",  hint: "Artefact versions · diode import" },
   { href: "/admin/audit",       label: "Audit ledger", hint: "Hash-chained decision log" },
 ];
+const GOV_KEY = "mizan.nav.governance";
+
+function NavItem({ item, pathname }: { item: NavEntry; pathname: string }) {
+  const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+  return (
+    <Link
+      href={item.href}
+      className={`block rounded-lg px-2.5 py-2 transition ${active ? "bg-raised" : "hover:bg-raised/60"}`}
+    >
+      <span className={`block text-[13px] ${active ? "text-ink" : "text-ink-mid"}`}>{item.label}</span>
+      <span className="block text-[11px] text-ink-faint">{item.hint}</span>
+    </Link>
+  );
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 10 6" aria-hidden
+         className={`h-[6px] w-[10px] shrink-0 text-ink-faint transition-transform duration-150 ${open ? "rotate-180" : ""}`}>
+      <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 const LEVEL_DOT: Record<Level, string> = {
   PUBLIC: "bg-cloud",
@@ -43,6 +73,21 @@ export default function AdminNav({ user, conversations }: {
   conversations: ChatSummary[];
 }) {
   const pathname = usePathname();
+  const govActive = GOVERNANCE.some((n) => pathname.startsWith(n.href));
+  const [govOpen, setGovOpen] = useState(govActive);
+
+  // Restore the viewer's last choice; always open when on one of its pages.
+  useEffect(() => {
+    if (govActive) { setGovOpen(true); return; }
+    try { if (localStorage.getItem(GOV_KEY) === "1") setGovOpen(true); } catch { /* storage blocked */ }
+  }, [govActive]);
+
+  function toggleGovernance() {
+    setGovOpen((v) => {
+      try { localStorage.setItem(GOV_KEY, v ? "0" : "1"); } catch { /* storage blocked */ }
+      return !v;
+    });
+  }
 
   return (
     <aside className="flex w-[232px] shrink-0 flex-col border-r border-line bg-surface">
@@ -53,20 +98,25 @@ export default function AdminNav({ user, conversations }: {
 
       <nav className="min-h-0 flex-1 overflow-y-auto p-2">
         <div className="mz-label px-2 pb-2 pt-2">Console</div>
-        {NAV.map((n) => {
-          const active = n.exact ? pathname === n.href : pathname.startsWith(n.href);
-          return (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={`block rounded-lg px-2.5 py-2 transition
-                ${active ? "bg-raised" : "hover:bg-raised/60"}`}
-            >
-              <span className={`block text-[13px] ${active ? "text-ink" : "text-ink-mid"}`}>{n.label}</span>
-              <span className="block text-[11px] text-ink-faint">{n.hint}</span>
-            </Link>
-          );
-        })}
+        {PRIMARY.map((n) => <NavItem key={n.href} item={n} pathname={pathname} />)}
+
+        <button
+          type="button"
+          onClick={toggleGovernance}
+          aria-expanded={govOpen}
+          className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-raised/60"
+        >
+          <span className="min-w-0 flex-1">
+            <span className={`block text-[13px] ${govActive ? "text-ink" : "text-ink-mid"}`}>Governance</span>
+            <span className="block text-[11px] text-ink-faint">Deployments · audit ledger</span>
+          </span>
+          <Chevron open={govOpen} />
+        </button>
+        {govOpen && (
+          <div className="mz-anim-in ml-3 border-l border-line pl-1.5">
+            {GOVERNANCE.map((n) => <NavItem key={n.href} item={n} pathname={pathname} />)}
+          </div>
+        )}
 
         <div className="mz-label px-2 pb-2 pt-5">Workspace</div>
         <Link

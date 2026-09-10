@@ -89,3 +89,16 @@
 @keyframes mz-scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
 .mz-anim-in { animation: mz-in 0.24s ease-out both; }
 .mz-anim-pulse { animation: mz-pulse 1.6s ease-in-out infinite; }
+
+/* Topology: busy rings, arrival flashes, flowing routes */
+@keyframes mz-ring { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
+@keyframes mz-flow { to { stroke-dashoffset: -28; } }
+@keyframes mz-spin { to { transform: rotate(405deg); } }
+.mz-anim-ring { animation: mz-ring 1.6s ease-out infinite; }
+.mz-anim-hit  { animation: mz-ring 0.9s ease-out 1 both; }
+.mz-anim-spin { animation: mz-spin 1.4s ease-in-out infinite; }
+.mz-flow { stroke-dasharray: 6 8; animation: mz-flow 0.8s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mz-anim-ring, .mz-anim-hit, .mz-anim-spin, .mz-flow, .mz-anim-pulse { animation: none; }
+}
