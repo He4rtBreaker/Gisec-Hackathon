@@ -87,8 +87,19 @@
 @keyframes mz-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes mz-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 @keyframes mz-scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
+/* A magnifier hunting over the text while the inspector runs. */
+@keyframes mz-hunt {
+  0%, 100% { transform: translate(0, 0) rotate(-5deg); }
+  25%      { transform: translate(2px, -1px) rotate(4deg); }
+  50%      { transform: translate(1px, 2px) rotate(-2deg); }
+  75%      { transform: translate(-2px, 0) rotate(5deg); }
+}
 .mz-anim-in { animation: mz-in 0.24s ease-out both; }
 .mz-anim-pulse { animation: mz-pulse 1.6s ease-in-out infinite; }
+.mz-anim-hunt { animation: mz-hunt 2.4s ease-in-out infinite; transform-origin: 60% 60%; }
+@media (prefers-reduced-motion: reduce) {
+  .mz-anim-hunt { animation: none; }
+}
 
 /* Topology: busy rings, arrival flashes, flowing routes */
 @keyframes mz-ring { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
