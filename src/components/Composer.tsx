@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import EnvSelector from "./EnvSelector";
+import ProjectPicker from "./ProjectPicker";
 import type { EnvKey, Level } from "@/lib/domain";
+import type { ProjectOption } from "@/lib/projects";
 
 export interface DraftAttachment {
   filename: string;
@@ -26,6 +28,10 @@ interface Props {
   seal: Level;
   /** Text pushed in from outside, e.g. a suggestion. `n` makes repeats distinct. */
   seed?: { text: string; n: number } | null;
+  projects: ProjectOption[];
+  projectId: string | null;
+  onProjectChange: (id: string | null) => void;
+  projectLocked: boolean;
 }
 
 function kb(bytes: number): string {
@@ -34,6 +40,7 @@ function kb(bytes: number): string {
 
 export default function Composer({
   onSend, onStop, busy, preferred, onPreferredChange, clearance, seal, seed,
+  projects, projectId, onProjectChange, projectLocked,
 }: Props) {
   const [value, setValue] = useState("");
   const [files, setFiles] = useState<DraftAttachment[]>([]);
@@ -124,7 +131,7 @@ export default function Composer({
 
           {/* Control rail — attach + target pill on the left, dispatch on the right */}
           <div className="mt-1 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
@@ -142,6 +149,12 @@ export default function Composer({
               </button>
               <input ref={fileRef} type="file" multiple hidden accept={ACCEPT}
                      onChange={(e) => addFiles(e.target.files)} />
+              <ProjectPicker
+                projects={projects}
+                value={projectId}
+                onChange={onProjectChange}
+                locked={projectLocked}
+              />
               <EnvSelector
                 value={preferred}
                 onChange={onPreferredChange}

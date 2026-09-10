@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { envAccepts, type EnvKey, type Level } from "@/lib/domain";
+import type { ProjectOption } from "@/lib/projects";
 import type { Inspection } from "./InspectionCard";
 import type { Refusal } from "./RefusalCard";
 import MessageList, { type UiMessage } from "./MessageList";
@@ -13,14 +15,26 @@ interface Props {
   initialMessages: UiMessage[];
   sealLevel: Level;
   clearance: Level;
+  projects: ProjectOption[];
+  /** Project this thread draws on (or the one preselected for a new chat). */
+  projectId: string | null;
+  /** True once the thread is bound to its project. */
+  projectLocked: boolean;
+  /** Sent automatically on mount — used when a chat is started from a project page. */
+  initialPrompt?: string;
 }
 
-export default function ChatView({ conversationId, initialMessages, sealLevel, clearance }: Props) {
+export default function ChatView({
+  conversationId, initialMessages, sealLevel, clearance,
+  projects, projectId: initialProjectId, projectLocked: initialLocked, initialPrompt,
+}: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<UiMessage[]>(initialMessages);
   const [convId, setConvId] = useState<string | null>(conversationId);
   const [preferred, setPreferred] = useState<EnvKey | "auto">("auto");
   const [seal, setSeal] = useState<Level>(sealLevel);
+  const [projectId, setProjectId] = useState<string | null>(initialProjectId);
+  const [projectLocked, setProjectLocked] = useState(initialLocked);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [seed, setSeed] = useState<{ text: string; n: number } | null>(null);
@@ -43,8 +57,20 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
     setMessages(initialMessages);
     setConvId(conversationId);
     setSeal(sealLevel);
+    setProjectId(initialProjectId);
+    setProjectLocked(initialLocked);
     setError(null);
-  }, [conversationId, initialMessages, sealLevel]);
+  }, [conversationId, initialMessages, sealLevel, initialProjectId, initialLocked]);
+
+  // A chat started from a project page arrives with its first request.
+  // The ref survives React's development double-mount, so it is sent once.
+  const autoSentRef = useRef(false);
+  useEffect(() => {
+    if (!initialPrompt || autoSentRef.current) return;
+    autoSentRef.current = true;
+    void send(initialPrompt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function send(text: string, attachments: DraftAttachment[] = []) {
     if (busy || (!text.trim() && !attachments.length)) return;
@@ -70,7 +96,7 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          conversationId: convId, content: text, preferred,
+          conversationId: convId, content: text, preferred, projectId,
           attachments: attachments.map(({ filename, mime, text: body }) => ({ filename, mime, text: body })),
         }),
         signal: ctrl.signal,
@@ -98,16 +124,20 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
           const evt = JSON.parse(line) as Record<string, never> & { type: string };
 
           if (evt.type === "meta") {
-            const e = evt as unknown as { conversationId: string };
+            const e = evt as unknown as { conversationId: string; projectId: string | null };
             newConvId = e.conversationId;
             setConvId(e.conversationId);
+            if (e.projectId) {
+              setProjectId(e.projectId);
+              setProjectLocked(true);
+            }
           } else if (evt.type === "inspecting") {
             applyToLast((m) => ({ ...m, inspecting: true }));
           } else if (evt.type === "classified") {
             const e = evt as unknown as {
               level: Inspection["level"]; sealLevel: Inspection["level"]; confidence: number;
               rationale: string; signals: Inspection["signals"]; inspector: string;
-              latencyMs: number; degraded: boolean;
+              latencyMs: number; degraded: boolean; context: Inspection["context"];
             };
             setSeal(e.sealLevel);
             applyToLast((m) => ({
@@ -116,7 +146,7 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
               inspection: {
                 level: e.level, confidence: e.confidence, rationale: e.rationale,
                 signals: e.signals, inspector: e.inspector,
-                latencyMs: e.latencyMs, degraded: e.degraded,
+                latencyMs: e.latencyMs, degraded: e.degraded, context: e.context,
               },
             }));
           } else if (evt.type === "routed") {
@@ -163,13 +193,17 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
         }
       }
 
-      // Move the URL onto the real thread, and refresh the sidebar.
       if (newConvId && !conversationId) {
-        window.history.replaceState(null, "", `/chat/${newConvId}`);
+        // A new thread: move onto its real route (the thread page rehydrates every
+        // card from the database), then refresh — client navigation reuses the
+        // shared layout, so without it the sidebar would not list the new thread.
+        router.replace(`/chat/${newConvId}`, { scroll: false });
+        router.refresh();
+      } else {
+        // An existing thread: refresh the sidebar without letting the server's
+        // message list clobber what this stream just rendered.
+        router.refresh();
       }
-      // Refresh the sidebar without letting the server's empty message list
-      // clobber what this stream just rendered.
-      router.refresh();
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         setError(err instanceof Error ? err.message : String(err));
@@ -188,13 +222,25 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
     setBusy(false);
   }
 
+  const project = projects.find((p) => p.id === projectId) ?? null;
+
   return (
     <>
-      <header className="flex shrink-0 items-center justify-end gap-3 border-b border-line px-5 py-3">
-        <span className="mz-label">Thread seal</span>
-        <span className="rounded-md border border-line bg-raised px-2 py-1 font-mono text-[10px] tracking-[0.12em] text-ink-mid">
-          {seal}
-        </span>
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-3">
+        {project && projectLocked ? (
+          <Link href={`/projects/${project.id}`}
+                className="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-0.5 text-[12.5px] text-ink-mid
+                           transition hover:bg-raised hover:text-ink">
+            <FolderGlyph />
+            <span className="truncate">{project.name}</span>
+          </Link>
+        ) : <span />}
+        <div className="flex items-center gap-3">
+          <span className="mz-label">Thread seal</span>
+          <span className="rounded-md border border-line bg-raised px-2 py-1 font-mono text-[10px] tracking-[0.12em] text-ink-mid">
+            {seal}
+          </span>
+        </div>
       </header>
 
       <MessageList messages={messages} onSuggest={(t) => setSeed({ text: t, n: Date.now() })} />
@@ -216,7 +262,20 @@ export default function ChatView({ conversationId, initialMessages, sealLevel, c
         clearance={clearance}
         seal={seal}
         seed={seed}
+        projects={projects}
+        projectId={projectId}
+        onProjectChange={setProjectId}
+        projectLocked={projectLocked}
       />
     </>
+  );
+}
+
+function FolderGlyph() {
+  return (
+    <svg viewBox="0 0 16 14" className="h-[13px] w-[14px] shrink-0 text-ink-dim" aria-hidden>
+      <path d="M1.5 3.2c0-.7.5-1.2 1.2-1.2h3.1l1.5 1.6h5.9c.7 0 1.2.5 1.2 1.2v6.5c0 .7-.5 1.2-1.2 1.2H2.7c-.7 0-1.2-.5-1.2-1.2z"
+            fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
   );
 }

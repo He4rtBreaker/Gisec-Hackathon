@@ -1,5 +1,5 @@
 import WorkspaceShell from "@/components/WorkspaceShell";
 
-export default function ChatLayout({ children }: { children: React.ReactNode }) {
+export default function ProjectsLayout({ children }: { children: React.ReactNode }) {
   return <WorkspaceShell>{children}</WorkspaceShell>;
 }

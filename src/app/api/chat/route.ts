@@ -12,6 +12,8 @@ interface Body {
   /** User's stated environment preference; policy decides whether it is honoured. */
   preferred?: EnvKey | "auto";
   attachments?: unknown;
+  /** Project to draw knowledge from; ownership is checked in the pipeline. */
+  projectId?: string | null;
 }
 
 export async function POST(req: Request) {
@@ -44,6 +46,7 @@ export async function POST(req: Request) {
           content,
           preferred: body.preferred,
           attachments,
+          projectId: typeof body.projectId === "string" ? body.projectId : null,
           signal: abort.signal,
         }, emit);
       } catch (err) {

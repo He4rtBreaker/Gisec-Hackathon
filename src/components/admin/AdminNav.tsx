@@ -4,6 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Level } from "@/lib/domain";
 
+/**
+ * The admin's left column. Shared by the console and the chat so an admin
+ * sees one consistent navigation wherever they are.
+ */
+
 const NAV = [
   { href: "/admin",             label: "Overview",     hint: "Workload · users · demo", exact: true },
   { href: "/admin/policies",    label: "Policies",     hint: "Routing rules · simulator" },
@@ -11,7 +16,32 @@ const NAV = [
   { href: "/admin/audit",       label: "Audit ledger", hint: "Hash-chained decision log" },
 ];
 
-export default function AdminNav({ user }: { user: { name: string; clearance: Level } }) {
+const LEVEL_DOT: Record<Level, string> = {
+  PUBLIC: "bg-cloud",
+  OFFICIAL: "bg-official",
+  CONFIDENTIAL: "bg-onprem",
+  SECRET: "bg-airgap",
+};
+
+export interface ChatSummary {
+  id: string;
+  title: string;
+  sealLevel: Level;
+  updatedAt: number;
+}
+
+function relative(ts: number): string {
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return "now";
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
+}
+
+export default function AdminNav({ user, conversations }: {
+  user: { name: string; clearance: Level };
+  conversations: ChatSummary[];
+}) {
   const pathname = usePathname();
 
   return (
@@ -39,10 +69,52 @@ export default function AdminNav({ user }: { user: { name: string; clearance: Le
         })}
 
         <div className="mz-label px-2 pb-2 pt-5">Workspace</div>
-        <Link href="/chat"
-              className="block rounded-lg px-2.5 py-2 text-[13px] text-ink-mid transition hover:bg-raised/60">
-          Open chat
+        <Link
+          href="/projects"
+          className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition
+            ${pathname.startsWith("/projects") ? "bg-raised text-ink" : "text-ink-mid hover:bg-raised/60"}`}
+        >
+          <svg viewBox="0 0 16 14" className="h-[13px] w-[14px] shrink-0 text-ink-dim" aria-hidden>
+            <path d="M1.5 3.2c0-.7.5-1.2 1.2-1.2h3.1l1.5 1.6h5.9c.7 0 1.2.5 1.2 1.2v6.5c0 .7-.5 1.2-1.2 1.2H2.7c-.7 0-1.2-.5-1.2-1.2z"
+                  fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          </svg>
+          Projects
         </Link>
+
+        <div className="flex items-center justify-between px-2 pb-2 pt-4">
+          <span className="mz-label">Chats</span>
+          <Link
+            href="/chat"
+            className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] tracking-[0.08em] transition
+              ${pathname === "/chat" ? "bg-raised text-ink" : "text-ink-dim hover:bg-raised/60 hover:text-cloud"}`}
+          >
+            + NEW
+          </Link>
+        </div>
+
+        {conversations.length === 0 ? (
+          <p className="px-2.5 text-[12px] leading-relaxed text-ink-faint">No chats yet. Start one above.</p>
+        ) : (
+          <ul className="space-y-0.5">
+            {conversations.map((c) => {
+              const active = pathname === `/chat/${c.id}`;
+              return (
+                <li key={c.id}>
+                  <Link
+                    href={`/chat/${c.id}`}
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] transition
+                      ${active ? "bg-raised text-ink" : "text-ink-dim hover:bg-raised/60 hover:text-ink-mid"}`}
+                  >
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${LEVEL_DOT[c.sealLevel]}`}
+                          title={`Thread sealed at ${c.sealLevel}`} />
+                    <span className="min-w-0 flex-1 truncate">{c.title}</span>
+                    <span className="shrink-0 font-mono text-[10px] text-ink-faint">{relative(c.updatedAt)}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </nav>
 
       <div className="flex items-center gap-2.5 border-t border-line p-3">

@@ -118,6 +118,8 @@ class OllamaProvider implements Provider {
       ...(opts.json ? { format: "json", think: false } : {}),
       options: {
         temperature: opts.temperature ?? 0.7,
+        // Room for project knowledge alongside the conversation.
+        num_ctx: 8192,
         ...(opts.maxTokens ? { num_predict: opts.maxTokens } : {}),
       },
     });

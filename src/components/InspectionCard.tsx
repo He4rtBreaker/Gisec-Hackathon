@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LEVEL_META, type Level } from "@/lib/domain";
+import type { ContextSummary } from "@/lib/projects";
 
 export interface Signal {
   code: string;
@@ -25,6 +26,8 @@ export interface Inspection {
   overrodePin?: boolean;
   /** Model artefact that served the request, e.g. "mizan-assistant v2.4.1". */
   artefact?: string;
+  /** Project knowledge that accompanied the request. */
+  context?: ContextSummary | null;
 }
 
 const LEVEL_STYLE: Record<Level, { text: string; dot: string; ring: string }> = {
@@ -73,6 +76,12 @@ export default function InspectionCard({ data }: { data: Inspection }) {
         {data.envName && (
           <span className="mz-label normal-case tracking-normal truncate">
             → {data.envName}
+          </span>
+        )}
+
+        {data.context && data.context.excerpts.length > 0 && (
+          <span className="mz-label normal-case tracking-normal truncate">
+            · {data.context.excerpts.length} excerpt{data.context.excerpts.length > 1 ? "s" : ""} from {data.context.project}
           </span>
         )}
 
@@ -144,6 +153,34 @@ export default function InspectionCard({ data }: { data: Inspection }) {
                 <p className="mt-1 text-[11.5px] text-warn">
                   Your pinned target was overridden by policy.
                 </p>
+              )}
+            </div>
+          )}
+
+          {data.context && (
+            <div>
+              <div className="mz-label mb-1">Project knowledge</div>
+              <p className="text-[12px] leading-relaxed text-ink-dim">
+                {data.context.excerpts.length === 0
+                  ? <>“{data.context.project}” has no files yet.</>
+                  : data.context.mode === "full"
+                    ? <>All files of “{data.context.project}” were included in full.</>
+                    : <>The {data.context.excerpts.length} most relevant excerpts were retrieved from “{data.context.project}” on-prem.</>}
+                {" "}Excerpts inherit their file&apos;s classification.
+              </p>
+              {data.context.excerpts.length > 0 && (
+                <ul className="mt-1.5 space-y-1">
+                  {data.context.excerpts.map((x, i) => (
+                    <li key={`${x.filename}-${x.part}-${i}`} className="flex items-center gap-2 text-[12px]">
+                      <span className={`h-1 w-1 shrink-0 rounded-full ${LEVEL_STYLE[x.level].dot}`} />
+                      <span className="truncate text-ink-mid">{x.filename}</span>
+                      {data.context!.mode === "retrieval" && (
+                        <span className="font-mono text-[10px] text-ink-faint">part {x.part}</span>
+                      )}
+                      <span className={`ml-auto font-mono text-[10px] ${LEVEL_STYLE[x.level].text}`}>{x.level}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           )}

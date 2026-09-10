@@ -40,6 +40,8 @@ function migrate(conn: Database.Database) {
     conn.exec(`UPDATE environments SET net_ms =
                  CASE key WHEN 'cloud' THEN 240 WHEN 'onprem' THEN 35 WHEN 'airgap' THEN 12 ELSE 0 END`);
   }
+  add("conversations", "project_id", `project_id TEXT`);
+  add("classifications", "context_json", `context_json TEXT`);
   add("audit_log", "prev_hash", `prev_hash TEXT`);
   add("audit_log", "hash", `hash TEXT`);
 }
