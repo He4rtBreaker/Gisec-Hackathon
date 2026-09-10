@@ -24,7 +24,7 @@ export default async function LoginPage() {
         />
         <div className="relative">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-[22px] font-semibold tracking-[0.30em] text-ink">MIZAN</span>
+            <span className="font-serif text-[30px] font-medium tracking-tight text-ink">Mizan</span>
             <span className="mz-label">Hybrid Deployment Orchestrator</span>
           </div>
           <p className="mt-8 max-w-md text-[15px] leading-relaxed text-ink-mid">
@@ -63,7 +63,7 @@ export default async function LoginPage() {
       <section className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-[380px]">
           <div className="lg:hidden mb-10 flex items-baseline gap-3">
-            <span className="font-mono text-[20px] font-semibold tracking-[0.30em]">MIZAN</span>
+            <span className="font-serif text-[26px] font-medium tracking-tight">Mizan</span>
             <span className="mz-label">Orchestrator</span>
           </div>
 
