@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Level } from "@/lib/domain";
-import { useSidebarCollapsed } from "@/components/nav/useSidebarCollapsed";
-import SidebarToggle from "@/components/nav/SidebarToggle";
+import { navSet, useNav } from "@/components/nav/useNav";
+import NavToggle from "@/components/nav/NavToggle";
 
 /**
  * The admin's left column. Shared by the console and the chat so an admin
@@ -75,7 +75,7 @@ export default function AdminNav({ user, conversations }: {
   conversations: ChatSummary[];
 }) {
   const pathname = usePathname();
-  const [collapsed] = useSidebarCollapsed();
+  const { collapsed, peek, animate } = useNav();
   const govActive = GOVERNANCE.some((n) => pathname.startsWith(n.href));
   const [govOpen, setGovOpen] = useState(govActive);
 
@@ -94,13 +94,17 @@ export default function AdminNav({ user, conversations }: {
 
   return (
     <aside
-      className={`flex shrink-0 flex-col overflow-hidden bg-surface transition-[width] duration-200
-        ${collapsed ? "w-0 min-w-0 border-r-0" : "w-[232px] border-r border-line"}`}
+      onMouseLeave={collapsed ? () => navSet({ peek: false }) : undefined}
+      className={`flex w-[232px] flex-col overflow-hidden bg-surface
+        ${animate ? "transition-transform duration-200" : ""}
+        ${collapsed
+          ? `fixed inset-y-0 left-0 z-40 border-r border-line shadow-2xl ${peek ? "translate-x-0" : "-translate-x-full"}`
+          : "relative shrink-0 border-r border-line"}`}
     >
       <div className="flex items-center gap-2 border-b border-line px-4 py-3.5">
         <span className="font-mono text-[15px] font-semibold tracking-[0.24em]">MIZAN</span>
         <span className="mz-label shrink-0 text-[8.5px]">Admin</span>
-        <span className="ml-auto shrink-0"><SidebarToggle placement="header" /></span>
+        <span className="ml-auto shrink-0"><NavToggle placement="header" /></span>
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto p-2">

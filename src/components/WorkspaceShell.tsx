@@ -3,7 +3,7 @@ import { currentUser } from "@/lib/auth";
 import { listConversations } from "@/lib/conversations";
 import Sidebar from "./Sidebar";
 import AdminNav from "./admin/AdminNav";
-import SidebarToggle from "./nav/SidebarToggle";
+import NavToggle from "./nav/NavToggle";
 
 /**
  * Left column and content area shared by chat and projects.
@@ -27,7 +27,7 @@ export default async function WorkspaceShell({ children }: { children: React.Rea
       ) : (
         <Sidebar user={user} conversations={conversations} />
       )}
-      <SidebarToggle placement="rail" />
+      <NavToggle placement="edge" />
       <div className="flex min-w-0 flex-1 flex-col">{children}</div>
     </div>
   );

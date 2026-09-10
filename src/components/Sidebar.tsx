@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Level } from "@/lib/domain";
-import { useSidebarCollapsed } from "@/components/nav/useSidebarCollapsed";
-import SidebarToggle from "@/components/nav/SidebarToggle";
+import { navSet, useNav } from "@/components/nav/useNav";
+import NavToggle from "@/components/nav/NavToggle";
 
 interface ConvSummary {
   id: string;
@@ -38,17 +38,21 @@ export default function Sidebar({ user, conversations }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [collapsed] = useSidebarCollapsed();
+  const { collapsed, peek, animate } = useNav();
 
   return (
     <aside
-      className={`flex shrink-0 flex-col overflow-hidden bg-surface transition-[width] duration-200
-        ${collapsed ? "w-0 min-w-0 border-r-0" : "w-[264px] border-r border-line"}`}
+      onMouseLeave={collapsed ? () => navSet({ peek: false }) : undefined}
+      className={`flex w-[264px] flex-col overflow-hidden bg-surface
+        ${animate ? "transition-transform duration-200" : ""}
+        ${collapsed
+          ? `fixed inset-y-0 left-0 z-40 border-r border-line shadow-2xl ${peek ? "translate-x-0" : "-translate-x-full"}`
+          : "relative shrink-0 border-r border-line"}`}
     >
       {/* Brand */}
       <div className="flex items-center gap-2 border-b border-line px-4 py-3.5">
         <span className="font-mono text-[15px] font-semibold tracking-[0.24em]">MIZAN</span>
-        <span className="ml-auto shrink-0"><SidebarToggle placement="header" /></span>
+        <span className="ml-auto shrink-0"><NavToggle placement="header" /></span>
       </div>
 
       <div className="p-3">
