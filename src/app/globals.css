@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Surfaces — neutral hue 260, light sovereign console */
+  --color-base:      oklch(0.985 0.003 260);
+  --color-surface:   oklch(0.970 0.004 260);
+  --color-raised:    oklch(0.940 0.004 260);
+  --color-overlay:   oklch(1.000 0     260);
+  --color-line:      oklch(0.900 0.006 260);
+  --color-line-soft: oklch(0.940 0.004 260);
+
+  /* Text */
+  --color-ink:       oklch(0.26 0.012 260);
+  --color-ink-mid:   oklch(0.45 0.012 260);
+  --color-ink-dim:   oklch(0.58 0.012 260);
+  --color-ink-faint: oklch(0.68 0.010 260);
+
+  /* Environment + classification accents */
+  --color-cloud:      oklch(0.55 0.15 250);
+  --color-cloud-soft: oklch(0.55 0.15 250 / 0.10);
+  --color-onprem:      oklch(0.52 0.13 155);
+  --color-onprem-soft: oklch(0.52 0.13 155 / 0.10);
+  --color-airgap:      oklch(0.50 0.18 300);
+  --color-airgap-soft: oklch(0.50 0.18 300 / 0.10);
+  --color-official:      oklch(0.53 0.11 215);
+  --color-official-soft: oklch(0.53 0.11 215 / 0.10);
+
+  /* Status */
+  --color-deny:      oklch(0.55 0.20 27);
+  --color-deny-soft: oklch(0.55 0.20 27 / 0.09);
+  --color-warn:      oklch(0.62 0.14 70);
+  --color-warn-soft: oklch(0.62 0.14 70 / 0.11);
+  --color-ok:        oklch(0.52 0.13 155);
+}
+
+@layer base {
+  html, body {
+    background: var(--color-base);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: oklch(0.86 0.008 260); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.78 0.010 260); }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::selection { background: var(--color-cloud-soft); }
+}
+
+@layer components {
+  /* Small uppercase console label */
+  .mz-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-dim);
+  }
+  .mz-panel {
+    background: var(--color-overlay);
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+  }
+  .mz-field {
+    background: var(--color-overlay);
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    color: var(--color-ink);
+    outline: none;
+  }
+  .mz-field:focus {
+    border-color: var(--color-cloud);
+    box-shadow: 0 0 0 3px var(--color-cloud-soft);
+  }
+  /* Elevation for popovers — light themes need shadow, not brightness */
+  .mz-pop {
+    background: var(--color-overlay);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 1px 2px oklch(0.55 0.02 260 / 0.06),
+                0 8px 24px oklch(0.55 0.02 260 / 0.12);
+  }
+}
+
+@keyframes mz-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes mz-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes mz-scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
+.mz-anim-in { animation: mz-in 0.24s ease-out both; }
+.mz-anim-pulse { animation: mz-pulse 1.6s ease-in-out infinite; }
