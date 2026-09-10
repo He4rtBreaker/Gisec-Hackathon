@@ -13,15 +13,15 @@ function PanelIcon({ className }: { className?: string }) {
 }
 
 /**
- * - "header": the collapse control inside the open sidebar. Hidden while collapsed.
+ * - "footer": the collapse control in the sidebar's identity row. Hidden while collapsed.
  * - "edge":   collapsed-mode chrome — a button that peeks the sidebar open on hover
  *             and pins it open on click, plus an off-sidebar catcher that dismisses
  *             the peek the moment the pointer moves away.
  */
-export default function NavToggle({ placement }: { placement: "header" | "edge" }) {
+export default function NavToggle({ placement }: { placement: "footer" | "edge" }) {
   const { collapsed, peek } = useNav();
 
-  if (placement === "header") {
+  if (placement === "footer") {
     if (collapsed) return null;
     return (
       <button
@@ -29,10 +29,10 @@ export default function NavToggle({ placement }: { placement: "header" | "edge" 
         onClick={() => navSet({ collapsed: true })}
         aria-label="Collapse navigation"
         title="Collapse navigation"
-        className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-base
-                   text-ink-dim transition hover:border-ink-faint hover:text-ink"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md
+                   text-ink-faint transition hover:bg-raised hover:text-ink-mid"
       >
-        <PanelIcon className="h-[15px] w-[15px]" />
+        <PanelIcon className="h-[13px] w-[13px]" />
       </button>
     );
   }
