@@ -101,10 +101,9 @@ export default function AdminNav({ user, conversations }: {
           ? `fixed inset-y-0 left-0 z-40 border-r border-line shadow-2xl ${peek ? "translate-x-0" : "-translate-x-full"}`
           : "relative shrink-0 border-r border-line"}`}
     >
-      <div className="flex items-center gap-2 border-b border-line px-4 py-3.5">
+      <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-4">
         <span className="font-mono text-[15px] font-semibold tracking-[0.24em]">MIZAN</span>
-        <span className="mz-label shrink-0 text-[8.5px]">Admin</span>
-        <span className="ml-auto shrink-0"><NavToggle placement="header" /></span>
+        <span className="mz-label text-[9px]">Admin console</span>
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -188,18 +187,23 @@ export default function AdminNav({ user, conversations }: {
         )}
       </nav>
 
-      <div className="flex items-center gap-2.5 border-t border-line p-3">
+      <div className="flex items-center gap-1.5 border-t border-line px-2.5 py-3">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full
                          bg-cloud-soft font-mono text-[11px] font-semibold text-cloud">
           {user.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[12.5px] text-ink">{user.name}</span>
-          <span className="mz-label block text-[9px]">Admin · {user.clearance}</span>
+          <span className="mz-label block truncate text-[9px]">Admin · {user.clearance}</span>
         </span>
+        <NavToggle placement="footer" />
         <form action="/api/auth/logout" method="post">
-          <button type="submit" className="font-mono text-[10px] tracking-[0.08em] text-ink-dim hover:text-deny">
-            SIGN OUT
+          <button type="submit" aria-label="Sign out" title="Sign out"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-ink-faint transition hover:bg-raised hover:text-deny">
+            <svg viewBox="0 0 14 14" aria-hidden className="h-[13px] w-[13px]">
+              <path d="M5.5 2.5H3a1 1 0 00-1 1v7a1 1 0 001 1h2.5M9 4.5L11.5 7 9 9.5M11.5 7H5.5"
+                    fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </form>
       </div>

@@ -50,9 +50,9 @@ export default function Sidebar({ user, conversations }: Props) {
           : "relative shrink-0 border-r border-line"}`}
     >
       {/* Brand */}
-      <div className="flex items-center gap-2 border-b border-line px-4 py-3.5">
+      <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-4">
         <span className="font-mono text-[15px] font-semibold tracking-[0.24em]">MIZAN</span>
-        <span className="ml-auto shrink-0"><NavToggle placement="header" /></span>
+        <span className="mz-label text-[9px]">Orchestrator</span>
       </div>
 
       <div className="p-3">
@@ -134,9 +134,10 @@ export default function Sidebar({ user, conversations }: Props) {
             </form>
           </div>
         )}
+        <div className="flex items-center gap-1">
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-raised"
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-raised"
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full
                            bg-cloud-soft font-mono text-[11px] font-semibold text-cloud">
@@ -148,6 +149,8 @@ export default function Sidebar({ user, conversations }: Props) {
           </span>
           <span className="text-ink-faint">{open ? "▾" : "▸"}</span>
         </button>
+        <NavToggle placement="footer" />
+        </div>
       </div>
     </aside>
   );
