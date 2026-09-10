@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { listConversations } from "@/lib/conversations";
 import AdminNav from "@/components/admin/AdminNav";
+import NavToggle from "@/components/nav/NavToggle";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
@@ -15,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex h-screen overflow-hidden">
       <AdminNav user={{ name: user.name, clearance: user.clearance }} conversations={conversations} />
+      <NavToggle placement="edge" />
       <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
     </div>
   );
