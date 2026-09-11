@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Level } from "@/lib/domain";
-import { navSet, useNav } from "@/components/nav/useNav";
+import { peekCloseSoon, peekOpen, useNav } from "@/components/nav/useNav";
 import NavToggle from "@/components/nav/NavToggle";
 
 /**
@@ -94,7 +94,8 @@ export default function AdminNav({ user, conversations }: {
 
   return (
     <aside
-      onMouseLeave={collapsed ? () => navSet({ peek: false }) : undefined}
+      onMouseEnter={collapsed ? peekOpen : undefined}
+      onMouseLeave={collapsed ? () => peekCloseSoon() : undefined}
       className={`flex w-[232px] flex-col overflow-hidden bg-surface
         ${animate ? "transition-transform duration-200" : ""}
         ${collapsed

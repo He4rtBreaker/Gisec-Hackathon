@@ -27,6 +27,28 @@ function emit() {
   for (const fn of subscribers) fn();
 }
 
+let closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Reveal the collapsed sidebar. Cancels any pending close from a moment ago. */
+export function peekOpen(): void {
+  if (closeTimer) {
+    clearTimeout(closeTimer);
+    closeTimer = null;
+  }
+  navSet({ peek: true });
+}
+
+/** Hide the peeked sidebar after a short grace period — matches claude.ai's
+ *  hover-intent: moving off the toggle onto the sidebar itself, or back again,
+ *  doesn't flicker it shut. */
+export function peekCloseSoon(delay = 350): void {
+  if (closeTimer) clearTimeout(closeTimer);
+  closeTimer = setTimeout(() => {
+    navSet({ peek: false });
+    closeTimer = null;
+  }, delay);
+}
+
 export function navSet(patch: Partial<NavState>): void {
   state = { ...state, ...patch };
   if ("collapsed" in patch) {
