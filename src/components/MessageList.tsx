@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { ENV_META, type EnvKey } from "@/lib/domain";
 import InspectionCard, { InspectingStrip, type Inspection } from "./InspectionCard";
 import RefusalCard, { type Refusal } from "./RefusalCard";
+import DecryptedText from "./DecryptedText";
 
 export interface UiMessage {
   id: string;
@@ -56,7 +57,16 @@ function Empty() {
         className="mz-anim-float mb-6 h-[104px] w-[104px] object-contain opacity-90 select-none"
         draggable={false}
       />
-      <div className="font-serif text-[34px] font-normal tracking-tight text-ink">Mizan</div>
+      <DecryptedText
+        text="Mizan"
+        animateOn="view"
+        sequential
+        speed={35}
+        maxIterations={8}
+        parentClassName="font-serif text-[34px] font-normal tracking-tight"
+        className="text-ink"
+        encryptedClassName="text-ink-faint"
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import AutoRefresh from "@/components/admin/AutoRefresh";
 import DemoRunner from "@/components/admin/DemoRunner";
 import Topology from "@/components/admin/Topology";
 import UserDirectory from "@/components/admin/UserDirectory";
+import SpotlightCard from "@/components/SpotlightCard";
 
 export const dynamic = "force-dynamic";
 
@@ -195,12 +196,12 @@ function Kpi({ label, value, sub, tone, accent }: {
   label: string; value: string; sub: string; tone?: string; accent: string;
 }) {
   return (
-    <div className="mz-panel relative h-full overflow-hidden px-4 py-3 transition hover:border-ink-faint">
+    <SpotlightCard className="mz-panel h-full px-4 py-3 transition hover:border-ink-faint">
       <span className={`absolute inset-y-0 left-0 w-[3px] ${accent} opacity-70`} />
       <div className="mz-label">{label}</div>
       <div className={`mt-1 font-mono text-[20px] font-semibold ${tone ?? ""}`}>{value}</div>
       <div className="mt-0.5 truncate text-[11.5px] text-ink-dim">{sub}</div>
-    </div>
+    </SpotlightCard>
   );
 }
 
