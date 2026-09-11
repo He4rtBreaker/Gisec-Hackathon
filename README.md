@@ -19,6 +19,7 @@ It then sends the request to the one environment accredited to hold it, or refus
   npm run dev    # http://localhost:3000
   ```
 - **Offline without Ollama:** set `MIZAN_PROVIDER=mock` in `.env.local`. Only the detector rules classify, and replies are canned.
+- **Optional — NER-backed PII recall:** `docker compose up -d presidio-analyzer` starts [Microsoft Presidio](https://github.com/microsoft/presidio)'s analyzer on loopback (`127.0.0.1:5002`). The classifier calls it alongside the regex detectors to catch identifying information no fixed pattern can (e.g. a name next to an address). It's additive, not required — unreachable is a normal, fully-supported state (see "How a request flows" below).
 
 ## Logins
 
@@ -44,6 +45,7 @@ It then sends the request to the one environment accredited to hold it, or refus
 1. The browser posts the prompt and any attachments to `/api/chat`. The server streams progress back as NDJSON.
 2. **Inspect (on-prem):**
    - 16 regex detectors set a minimum level, the *floor*.
+   - Microsoft Presidio's NER analyzer runs alongside them, if deployed, adding signals rules alone would miss — it can only add to the floor, never the other way round.
    - The local model then adjudicates. It can **raise** the level but never lower it.
 3. **Seal:** a thread's level only ever goes up. Routing uses the seal, not just the current turn.
 4. **Decide:** the policy engine walks the rules in priority order. The first match wins, and the engine records a full trace.
@@ -202,11 +204,12 @@ The ledger lives at **Admin → Audit ledger**.
 | `OLLAMA_HOST`, `OLLAMA_MODEL` | `http://127.0.0.1:11434`, `gemma4:e2b` | add `_<BINDING>` to override one connection |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | — | only allowed on the cloud connection (the boundary rules block it elsewhere) |
 | `MIZAN_SECRET` | `dev-secret-change-me` | session cookie signing key |
+| `PRESIDIO_URL` | `http://127.0.0.1:5002` | optional NER analyzer for the classifier; unreachable degrades gracefully |
 
 ## Key files
 
 - `src/lib/pipeline.ts`: inspect, decide, dispatch, record.
-- `src/lib/classify/`: detectors and the model adjudicator.
+- `src/lib/classify/`: detectors, the Presidio NER adapter, and the model adjudicator.
 - `src/lib/policy/engine.ts`: rule evaluation, admission checks and pin guards.
 - `src/lib/llm/provider.ts`: model connections and network boundaries.
 - `src/lib/environments.ts`: live capacity and status.

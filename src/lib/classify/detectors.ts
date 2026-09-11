@@ -20,6 +20,9 @@ export interface Signal {
   count: number;
   /** Redacted evidence, safe to display in the UI and store in the ledger. */
   sample: string;
+  /** Which engine produced this. Absent means "rule" — kept optional so old
+   *  audit rows (written before the NER layer existed) still parse. */
+  source?: "rule" | "ner";
 }
 
 interface Detector {
@@ -34,7 +37,7 @@ interface Detector {
 }
 
 /** Mask all but the last two characters. */
-const mask = (s: string) => {
+export const mask = (s: string) => {
   const tail = s.slice(-2);
   return `${"•".repeat(Math.max(3, Math.min(s.length - 2, 12)))}${tail}`;
 };
