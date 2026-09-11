@@ -230,7 +230,7 @@ function Instructions({ projectId, instructions }: { projectId: string; instruct
           <div className="flex items-center gap-2">
             <button type="submit" disabled={pending}
                     className="rounded-full bg-primary px-3.5 py-1 font-mono text-[10.5px] font-semibold tracking-[0.08em]
-                               text-white transition hover:opacity-90 disabled:opacity-60">
+                               text-white transition hover:bg-primary-active disabled:opacity-60">
               {pending ? "SAVING…" : "SAVE"}
             </button>
             <button type="button" onClick={() => setEditing(false)}

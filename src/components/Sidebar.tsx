@@ -52,7 +52,7 @@ export default function Sidebar({ user, conversations }: Props) {
     >
       {/* Brand */}
       <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-3.5">
-        <span className="font-serif text-[24px] font-medium tracking-tight text-ink">Mizan</span>
+        <span className="font-serif text-[24px] font-normal tracking-tight text-ink">Mizan</span>
         <span className="mz-label text-[8.5px]">Orchestrator</span>
       </div>
 
