@@ -1,0 +1,13 @@
+services:
+  # Presidio's NER-backed PII analyzer, used by src/lib/classify/presidio.ts as
+  # an additional signal source alongside the regex detectors in detectors.ts.
+  #
+  # Bound to loopback only — same network-boundary posture as every other
+  # on-prem binding in this project (see egressAllowed() in src/lib/llm/provider.ts).
+  # It never needs to leave the host: the model files ship inside the image,
+  # so once pulled this runs fully air-gapped.
+  presidio-analyzer:
+    image: mcr.microsoft.com/presidio-analyzer:latest
+    ports:
+      - "127.0.0.1:5002:3000"
+    restart: unless-stopped
