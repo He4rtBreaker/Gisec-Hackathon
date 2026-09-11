@@ -1,76 +1,125 @@
-# Mizan — Hybrid Deployment Orchestrator
+<div align="center">
 
-Mizan routes AI requests across three environments: public cloud, sovereign on-prem, and an air-gapped enclave.
-It inspects every prompt and attachment on-prem before anything reaches a model.
-It then sends the request to the one environment accredited to hold it, or refuses the request with a reason. Every decision is written to a hash-chained audit ledger.
+# Mizan
 
----
+### ⚖️ Hybrid Deployment Orchestrator
 
-## Run it
+**One assistant. Three environments. Every request is inspected on sovereign infrastructure *before* it is allowed to move.**
 
-- **Requires:** Node 20+ and [Ollama](https://ollama.com) with the model pulled:
-  ```bash
-  ollama pull gemma4:e2b
-  ```
-- **Install, seed, start:**
-  ```bash
-  npm install
-  npm run seed   # fresh dataset — wipes all users, threads and the audit ledger
-  npm run dev    # http://localhost:3000
-  ```
-- **Offline without Ollama:** set `MIZAN_PROVIDER=mock` in `.env.local`. Only the detector rules classify, and replies are canned.
-- **Optional — NER-backed PII recall:** `docker compose up -d presidio-analyzer` starts [Microsoft Presidio](https://github.com/microsoft/presidio)'s analyzer on loopback (`127.0.0.1:5002`). The classifier calls it alongside the regex detectors to catch identifying information no fixed pattern can (e.g. a name next to an address). It's additive, not required — unreachable is a normal, fully-supported state (see "How a request flows" below).
+Built for **GISEC 2026**
 
-## Logins
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![SQLite](https://img.shields.io/badge/better--sqlite3-storage-003b57?logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
+[![Presidio](https://img.shields.io/badge/Microsoft%20Presidio-NER%20layer-0078d4?logo=microsoft&logoColor=white)](https://github.com/microsoft/presidio)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)](https://mizan-gisec.vercel.app)
 
-| Identity | Password | Role | Clearance |
-|---|---|---|---|
-| `admin@mizan.gov.ae` | `admin123` | admin → `/admin` | SECRET |
-| `defence@mizan.gov.ae` | `user123` | user | SECRET |
-| `analyst@mizan.gov.ae` | `user123` | user | CONFIDENTIAL |
-| `public@mizan.gov.ae` | `user123` | user | OFFICIAL |
+**[🚀 Live demo →](https://mizan-gisec.vercel.app)**
+
+</div>
 
 ---
 
-## Stack
+## What this is
 
-- **Next.js 15 (App Router) + React 19 + TypeScript.** One process serves the UI and the API.
-- **Tailwind v4.** A light theme built from design tokens.
-- **SQLite (`better-sqlite3`).** One file, `mizan.db`. Tables are created from `schema.sql`, and additive migrations run on boot.
-- **Ollama (`gemma4:e2b`).** A local model reached over HTTP on `127.0.0.1`, with no API key.
-- **Auth.** HMAC-signed session cookies. Passwords use salted SHA-256, which is demo-grade.
+Government AI has one problem that matters more than any other: **you cannot know a prompt is safe to send to a public model until after you've read it.** Mizan is a policy-enforced router that solves this by inspecting *inside the boundary, before dispatch* — every prompt and every attachment is classified on sovereign infrastructure first, and the classification decides whether the request may leave, where it may go, or whether it is refused outright, with a reason, on the record.
 
-## How a request flows
+It routes across three environments:
 
-1. The browser posts the prompt and any attachments to `/api/chat`. The server streams progress back as NDJSON.
-2. **Inspect (on-prem):**
-   - 16 regex detectors set a minimum level, the *floor*.
-   - Microsoft Presidio's NER analyzer runs alongside them, if deployed, adding signals rules alone would miss — it can only add to the floor, never the other way round.
-   - The local model then adjudicates. It can **raise** the level but never lower it.
-3. **Seal:** a thread's level only ever goes up. Routing uses the seal, not just the current turn.
-4. **Decide:** the policy engine walks the rules in priority order. The first match wins, and the engine records a full trace.
-5. **Dispatch:** the request goes to the chosen environment's own model connection, within its network boundary. The reply streams back.
-6. **Record:** the classification, routing decision, message cost, tokens and latency are saved, and an audit entry is written.
+| 🌐 Public Cloud | 🏛️ Sovereign On-Prem | 🔒 Air-Gapped Enclave |
+|:---:|:---:|:---:|
+| Elastic, external egress | Fixed capacity, sovereign network | No outbound route — loopback only |
+| Accredited to **OFFICIAL** | Accredited to **CONFIDENTIAL** | Accredited to **SECRET** |
+| Real Anthropic Claude | Local Ollama model | Same model, diode-imported |
 
-The code for this lives in `src/lib/pipeline.ts`. The chat API and the demo runner both use it.
+A request is never *told* to go somewhere by the user — it is *routed* there by policy, and if no environment is lawfully able to hold it, it is refused instead of downgraded.
 
 ---
 
-## Classification scheme
+## 📸 Screenshots
+
+<table>
+<tr>
+<td width="33%"><img src="docs/screenshots/login.jpg" alt="Sign-in screen"></td>
+<td width="33%"><img src="docs/screenshots/admin-overview.jpg" alt="Admin workload topology"></td>
+<td width="33%"><img src="docs/screenshots/chat-empty.jpg" alt="Chat composer"></td>
+</tr>
+<tr>
+<td align="center"><sub>Clearance-based sign-in</sub></td>
+<td align="center"><sub>Live workload topology (Admin → Overview)</sub></td>
+<td align="center"><sub>The chat composer</sub></td>
+</tr>
+</table>
+
+---
+
+## 🧠 How a request actually flows
+
+```mermaid
+flowchart LR
+    U([User prompt<br/>+ attachments]) --> D1{{Regex detectors<br/>16 patterns}}
+    D1 --> D2{{Presidio NER<br/>optional}}
+    D2 --> D3{{LLM adjudicator<br/>can only raise}}
+    D3 --> L[/Classification level<br/>PUBLIC → SECRET/]
+    L --> S{{Thread seal<br/>never downgrades}}
+    S --> P{Policy engine<br/>first match wins}
+    P -->|admitted| ROUTE[Dispatch to the one<br/>accredited environment]
+    P -->|no lawful target| REFUSE[❌ Refuse, with reason]
+    ROUTE --> A[(Hash-chained<br/>audit ledger)]
+    REFUSE --> A
+```
+
+1. **Inspect, on-prem, before anything is dispatched.** Three layers stack, and *each one can only escalate the classification, never lower it*:
+   - **Regex detectors** (`src/lib/classify/detectors.ts`) — 16 deterministic patterns: Emirates ID, passport, IBAN, Luhn-checked payment cards, payroll/health language, credential material, defence/intel/critical-infra terms, handling markings. Zero network dependency — this is the floor, and it works identically air-gapped.
+   - **Presidio NER** (`src/lib/classify/presidio.ts`, optional) — [Microsoft Presidio](https://github.com/microsoft/presidio) running as a local container, adding named-entity recognition on top of regex. Catches identifying information no fixed pattern can (a person's name next to an address, a generic national ID, a crypto wallet). Runs concurrently with the adjudicator call. Fails closed to "unavailable" on any error — never blocks a request.
+   - **LLM adjudicator** — reads *meaning*, not just pattern: "asking how a passport works is PUBLIC; supplying a passport number is CONFIDENTIAL." Returns a level, a confidence score, and a one-sentence rationale.
+2. **Seal the thread.** A conversation's classification only ever ratchets up. Once a thread has touched SECRET, every later turn in it is treated as SECRET-sealed, even a trivial one — a thread can't be laundered down.
+3. **Decide.** The policy engine (`src/lib/policy/engine.ts`) walks rules in priority order, firewall-style — first match wins — and every rule considered, matched or not, goes into a full trace. A matched rule's target is *then* re-checked for real: is it online, accredited, has a free slot, has a deployed model, and does its network binding actually stay inside its boundary? If not, evaluation falls through to the next rule rather than failing closed immediately.
+4. **Dispatch**, inside the chosen environment's own network boundary — a binding's HTTP client is physically incapable of reaching a host outside what it's allowed to touch. Point the air-gapped enclave at a hosted API by mistake and it fails closed.
+5. **Record.** Classification, routing trace, cost, tokens, latency — all written, plus a hash-chained audit entry that a tamper check can verify end to end.
+
+All of it lives in one place: `src/lib/pipeline.ts`, shared by the live chat API and the scripted admin demo, so both walk the exact same path.
+
+---
+
+## 🏗️ Backend architecture
+
+Mizan is a **single Next.js process** — the UI and the API are the same deployable, no separate backend service.
+
+| Layer | What it is | Where |
+|---|---|---|
+| **Framework** | Next.js 15 App Router, React 19, Server Actions for auth/mutations, streamed NDJSON for chat | `src/app/` |
+| **Storage** | SQLite via `better-sqlite3`, one file, schema + additive migrations run on boot | `src/lib/db/` |
+| **Classification** | Regex floor + optional Presidio NER + LLM adjudicator, merged and escalate-only | `src/lib/classify/` |
+| **Policy engine** | Ordered rule evaluation, admission checks, pin guards, full decision trace | `src/lib/policy/engine.ts` |
+| **Model providers** | One seam (`getProvider(binding)`) for Ollama, Anthropic, and an offline mock — every binding's fetch is wrapped so it *cannot* reach a host outside its declared network boundary | `src/lib/llm/provider.ts` |
+| **Environments** | Live capacity, in-flight counters, simulated network hop per environment | `src/lib/environments.ts` |
+| **Deployments** | Signed artefact versions across all three environments; the enclave's path is a literal three-step data-diode ceremony (export → diode → re-hash & activate) | `src/lib/deployments.ts` |
+| **Audit** | Every sign-in, route, refusal, policy edit and deployment is a hash-chained entry: `SHA-256(previous hash + this entry)` — a verify pass re-hashes the whole chain and names the first broken link | `src/lib/audit.ts` |
+| **Knowledge / RAG** | Per-user Projects with instructions + up to 25 files; small projects go in whole, larger ones are chunked and retrieved with on-prem BM25; every excerpt inherits its file's own classification | `src/lib/projects.ts` |
+| **Auth** | HMAC-signed, `httpOnly` session cookie carrying the user's claims directly — no session-table lookup on the read path (see *Deploying elsewhere* below for why) | `src/lib/auth.ts` |
+
+**Design principle that runs through all of it:** the model — any model, at any layer — can only ever *raise* a decision's strictness. Rules set a floor the adjudicator can't talk down; policy admission re-verifies a target even after a rule names it; a thread's seal only goes up. A jailbroken, wrong, or simply unreachable model degrades to *more* conservative behaviour, never less.
+
+---
+
+## 🚦 Classification scheme
 
 | Level | Meaning | Examples | May run in |
 |---|---|---|---|
-| PUBLIC | Releasable | general questions | Cloud, On-Prem, Enclave |
-| OFFICIAL | Routine government business | tenders, work emails and phones | On-Prem (Cloud fallback), Enclave |
-| CONFIDENTIAL | Personal, financial or commercial data | Emirates ID, passport, IBAN, payroll, health | On-Prem, Enclave |
-| SECRET | Defence, intelligence, critical infrastructure | `SECRET //` markings, troop movements | Enclave only |
+| 🔵 **PUBLIC** | Releasable | general questions | Cloud, On-Prem, Enclave |
+| 🟡 **OFFICIAL** | Routine government business | tenders, work emails and phones | On-Prem (Cloud fallback), Enclave |
+| 🟠 **CONFIDENTIAL** | Personal, financial or commercial data | Emirates ID, passport, IBAN, payroll, health | On-Prem, Enclave |
+| 🔴 **SECRET** | Defence, intelligence, critical infrastructure | `SECRET //` markings, troop movements | Enclave only |
 
-- **Fails safe.** If the model is down, the detector rules decide alone and the UI marks the result `RULES ONLY`.
-- **Attachments are inspected in full.** Only text files are accepted (txt, md, csv, json and similar), up to 3 files of 200 KB each.
+- **Fails safe.** If the adjudicator is down, the detector rules (+ Presidio, if deployed) decide alone and the UI marks the result `RULES ONLY`.
+- **Attachments are inspected in full.** Text files only (txt, md, csv, json and similar), up to 3 files of 200 KB each.
 
-## Routing policy
+## 🧭 Routing policy
 
-These are the default rules, editable in **Admin → Policies**:
+Default rules, editable live in **Admin → Policies**:
 
 | Priority | Rule | Action |
 |---|---|---|
@@ -83,19 +132,12 @@ These are the default rules, editable in **Admin → Policies**:
 | 50 | Public goes to cloud | ROUTE → Cloud |
 | 99 | Default deny | REFUSE |
 
-- **Two built-in guards run first** and cannot be edited:
-  - A pinned target must be accredited for the thread's seal. **A sensitive thread cannot be downgraded.**
+- **Two built-in guards run first**, not editable:
+  - A pinned target must be accredited for the thread's seal — **a sensitive thread cannot be downgraded** by re-pinning it.
   - Only SECRET-cleared users may pin the Enclave.
-- **A target must pass every check** before a ROUTE rule is used. If any check fails, the engine falls through to the next rule. The checks:
-  - It is accredited for the level.
-  - It is online.
-  - It has a free slot.
-  - It has an active model artefact.
-  - Its model connection stays inside its network boundary.
+- **A target must pass every admission check** before a ROUTE rule is honoured — accredited, online, has a free slot, has an active model artefact, and its connection stays inside its network boundary. Fail any one, and the engine falls through to the next rule.
 
----
-
-## Environments
+## 🌍 Environments
 
 | | Public Cloud | Sovereign On-Prem | Air-Gapped Enclave |
 |---|---|---|---|
@@ -106,86 +148,45 @@ These are the default rules, editable in **Admin → Policies**:
 | Network boundary | anywhere | private addresses only | **loopback only** |
 | Artefact channel | registry pull · TLS | internal mirror · TLS | data diode · manual import |
 
-- **Each environment has its own model connection.** Settings follow the pattern `MIZAN_PROVIDER_<ENV>` and `OLLAMA_HOST_<ENV>` (see Configuration below).
-- **Boundaries are enforced in code.** Each connection's HTTP client refuses hosts outside its boundary. If the Enclave is pointed at a hosted API, it fails closed and the router stops sending work there.
-- **Capacity is live.** Running requests occupy slots. An admin can also **reserve** slots from the Overview page to simulate load.
+Each environment has its own model connection (`MIZAN_PROVIDER_<ENV>`, `OLLAMA_HOST_<ENV>`, …). Boundaries are enforced in code, not policy alone — every connection's HTTP client refuses hosts outside its declared boundary, so a misconfigured enclave fails closed instead of quietly leaking.
 
-## Model deployments & data diode
+## 📦 Model deployments & the data diode
 
-The deployments page lives at **Admin → Deployments**.
+**Admin → Deployments.** One signed artefact (`mizan-assistant`) is versioned across all three environments. Cloud and On-Prem get a one-click deploy or rollback; the Enclave gets a literal three-step ceremony — export to removable media, pass it through the one-way diode, re-hash inside the enclave against the manifest, then activate. Every step is custody-logged. Routing depends on deployment: the router won't use an environment with no active artefact, and every answer names the exact version that served it.
 
-- **One signed artefact** (`mizan-assistant`) is versioned in all three environments.
-- **Cloud and On-Prem:** one-click deploy or roll back.
-- **Enclave, three manual steps:**
-  1. Export to removable media.
-  2. Pass the media through the one-way diode.
-  3. Re-hash inside the enclave, compare with the manifest, then activate.
-- **Custody:** every step records who performed it and when.
-- **A new version supersedes the old one.** The old version stays in place for rollback.
-- **Routing depends on deployment.** The router won't use an environment with no active artefact, and each chat answer shows which version served it.
+## 🔗 Audit ledger
 
-## Audit ledger
+**Admin → Audit ledger.** Every sign-in, route, refusal, policy edit, and deployment is logged and hash-chained (`SHA-256(previous hash + entry)`). **VERIFY CHAIN** re-hashes the entire ledger and names the first tampered entry:
 
-The ledger lives at **Admin → Audit ledger**.
+```bash
+sqlite3 mizan.db "UPDATE audit_log SET summary = 'tampered' WHERE rowid = 5"
+# then click VERIFY CHAIN in Admin → Audit ledger
+```
 
-- **Everything is logged:** sign-ins, routing decisions, refusals, policy edits, deployments, and environment changes.
-- **The ledger is hash-chained.** Each entry stores `SHA-256(previous hash + its own content)`.
-- **VERIFY CHAIN** re-hashes the entire ledger and names the first broken entry.
-- **Try tampering:**
-  ```bash
-  sqlite3 mizan.db "UPDATE audit_log SET summary = 'tampered' WHERE rowid = 5"
-  ```
-  Then click VERIFY CHAIN.
+## 📁 Projects (knowledge + RAG)
 
-## Projects (knowledge + RAG)
+Every user gets Projects: a name, instructions, and up to 25 text files (200 KB each). Uploads are classified on-prem exactly like a chat prompt — anything above the uploader's clearance, or containing credentials, is refused and logged. Small projects go into context whole; larger ones are chunked and retrieved on-prem via BM25, top excerpts only. Every excerpt inherits its file's own classification, so a chat that pulls in Confidential knowledge is itself marked Confidential and can never reach Public Cloud.
 
-- **Every user has Projects** (sidebar → Projects). A project has a name, a description, instructions and up to 25 text files, each up to 200 KB.
-- **Uploads are classified on-prem**, using the same inspector as chat requests.
-  - A file above the uploader's clearance is refused.
-  - A file containing credentials is refused.
-  - Either refusal is logged.
-- **To use a project,** pick it with the **Project** pill in the chat composer, or start a chat from the project page. A chat stays bound to the project it has used.
-- **How knowledge reaches the model:**
-  - **Small projects** (up to 8k characters) go into context whole.
-  - **Larger projects** are split into chunks. Each request retrieves the top excerpts using **BM25**, on-prem, before anything is dispatched.
-- **Security:** each excerpt carries its file's classification. A chat that retrieves Confidential knowledge is marked Confidential, so it can never reach Public Cloud. The Reasoning panel lists which files and parts were used.
+## 🖥️ Admin console
 
-## Admin console
-
-- **Overview:**
-  - Live topology showing load, status, bindings, and the Enclave's diode.
-  - Controls to change reserved load and take an environment offline.
-  - Headline figures, the classification mix, cost by environment, refusals by rule, the detector signals seen, and recent decisions.
-  - The **demo runner**.
-- **Policies:**
-  - A rule editor that warns about unreachable rules and targets that can't hold the material.
-  - A **policy simulator** that dry-runs a hypothetical request and shows the full trace.
-- **Deployments:** the version matrix, the diode import, and the deployment log.
-- **Audit ledger:** filters, search, detail for each entry, and chain verification.
+- **Overview** — live topology (load, status, bindings, the diode), reserve/offline controls, headline figures, classification mix, cost by environment, refusals by rule, detector signals seen, and the scripted demo runner.
+- **Policies** — a rule editor that warns about unreachable rules and unsatisfiable targets, plus a simulator that dry-runs a hypothetical request and shows the full decision trace.
+- **Deployments** — the version matrix, diode import flow, deployment log.
+- **Audit ledger** — filters, search, per-entry detail, chain verification.
 
 ---
 
-## Demo script (about 5 minutes)
+## 🎬 Demo script (~5 minutes)
 
-1. Sign in as **admin**. The Overview page shows the topology.
-2. Click **▶ Run demo sequence**. It runs eight scripted scenarios through the real pipeline:
-   - Public goes to Cloud.
-   - Official goes to On-Prem.
-   - Confidential goes to On-Prem.
-   - Secret goes to the Enclave.
-   - Secret from an analyst without the clearance is **refused**.
-   - A leaked API key is **refused**.
-   - A downgrade attempt is **refused**.
-   - With On-Prem saturated, Official **falls back to Cloud**.
-3. Press **+** on On-Prem until it is full, then take the Enclave offline. Watch the topology change.
-4. On **Policies**, simulate CONFIDENTIAL with On-Prem pinned, then with Cloud pinned, and read the trace.
-5. On **Deployments**, register `v2.5.0`:
-   1. Deploy it to Cloud and On-Prem. The page flags version drift.
-   2. Walk it through the diode into the Enclave. All three are back in step.
-6. On **Audit ledger**, click **Verify chain**. Tamper with a row using the command above, then verify again.
-7. Sign in as **analyst** and open a Confidential thread. **Cloud is locked** in the Routing pill.
+1. Sign in as **admin** — Overview shows the live topology.
+2. **▶ Run demo sequence** — eight scripted scenarios through the real pipeline: Public→Cloud, Official→On-Prem, Confidential→On-Prem, Secret→Enclave, an under-cleared Secret request **refused**, a leaked API key **refused**, a downgrade attempt **refused**, and Official **falling back to Cloud** once On-Prem is saturated.
+3. Fill On-Prem's slots, take the Enclave offline — watch the topology react live.
+4. **Policies** — simulate CONFIDENTIAL pinned to On-Prem, then to Cloud, and read the trace.
+5. **Deployments** — register `v2.5.0`, deploy to Cloud + On-Prem (page flags version drift), then walk it through the diode into the Enclave.
+6. **Audit ledger** — Verify chain, tamper a row with the SQL above, verify again.
+7. Sign in as **analyst** — open a Confidential thread and watch **Cloud lock** in the routing pill.
 
-## How the deliverables are met
+## ✅ How the deliverables are met
 
 | Requirement | Where |
 |---|---|
@@ -195,33 +196,110 @@ The ledger lives at **Admin → Audit ledger**.
 | Same artefact versioned in all three, with data-diode import | Admin → Deployments, `src/lib/deployments.ts` |
 | Blocked request with reason | the chat refusal card and the policy trace |
 
-## Configuration (`.env.local`)
+---
+
+## 🏁 Run it locally
+
+- **Requires:** Node 20+ and [Ollama](https://ollama.com):
+  ```bash
+  ollama pull gemma4:e2b
+  ```
+- **Install, seed, start:**
+  ```bash
+  npm install
+  npm run seed   # fresh dataset — wipes users, threads and the audit ledger
+  npm run dev    # http://localhost:3000
+  ```
+- **Offline, no Ollama:** set `MIZAN_PROVIDER=mock` in `.env.local` — the detector rules classify alone, replies are canned.
+- **Optional NER recall layer:**
+  ```bash
+  docker compose up -d presidio-analyzer   # 127.0.0.1:5002, loopback only
+  ```
+
+### Logins
+
+| Identity | Password | Role | Clearance |
+|---|---|---|---|
+| `admin@mizan.gov.ae` | `admin123` | admin → `/admin` | SECRET |
+| `defence@mizan.gov.ae` | `user123` | user | SECRET |
+| `analyst@mizan.gov.ae` | `user123` | user | CONFIDENTIAL |
+| `public@mizan.gov.ae` | `user123` | user | OFFICIAL |
+
+### Configuration (`.env.local`)
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `MIZAN_PROVIDER` | `ollama` | `ollama`, `anthropic` or `mock`, for every connection |
 | `MIZAN_PROVIDER_<CLOUD\|ONPREM\|AIRGAP\|INSPECTOR>` | — | per-connection override |
 | `OLLAMA_HOST`, `OLLAMA_MODEL` | `http://127.0.0.1:11434`, `gemma4:e2b` | add `_<BINDING>` to override one connection |
-| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | — | only allowed on the cloud connection (the boundary rules block it elsewhere) |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | — | only allowed on the cloud connection (boundary rules block it elsewhere) |
 | `MIZAN_SECRET` | `dev-secret-change-me` | session cookie signing key |
 | `PRESIDIO_URL` | `http://127.0.0.1:5002` | optional NER analyzer for the classifier; unreachable degrades gracefully |
 
-## Key files
+---
 
-- `src/lib/pipeline.ts`: inspect, decide, dispatch, record.
-- `src/lib/classify/`: detectors, the Presidio NER adapter, and the model adjudicator.
-- `src/lib/policy/engine.ts`: rule evaluation, admission checks and pin guards.
-- `src/lib/llm/provider.ts`: model connections and network boundaries.
-- `src/lib/environments.ts`: live capacity and status.
-- `src/lib/deployments.ts`: artefact lifecycle and the diode.
-- `src/lib/audit.ts`: the hash-chained ledger.
-- `src/lib/demo.ts`: the scripted scenarios.
-- `src/app/admin/*`: the console.
-- `src/app/chat/*` and `src/components/*`: the chat.
+## ☁️ Deploying elsewhere (what we learned shipping this to Vercel)
 
-## Limitations
+The live demo above runs on Vercel, and getting there surfaced three real lessons worth documenting rather than hiding:
 
-- **One local model** serves all three environments. The separation between them is real in routing, network boundaries and capacity. Everything else about them is simulated.
-- **Attachments are text only.** There is no PDF or Office parsing.
-- **Auth is demo-grade.** Passwords use salted SHA-256, and there is no rate limiting.
-- **The chain detects edits and deletions** anywhere before the latest entry. Silently cutting entries off the end needs the head hash anchored somewhere outside the database.
+<details>
+<summary><b>1. Vercel's filesystem is read-only outside <code>/tmp</code> — a file-based SQLite app needs a build-time seed + a runtime copy</b></summary>
+<br>
+
+`package.json`'s `vercel-build` script seeds a fresh `mizan.db` into the deploy bundle at build time; `next.config.ts`'s `outputFileTracingIncludes` makes sure that file (and `schema.sql`) actually survives Next's serverless bundling (they're opened via a runtime-built path, which the tracer doesn't follow the way it follows static imports); `src/lib/db/index.ts` copies that seeded file into `/tmp` once per cold instance. **Trade-off, stated plainly:** each serverless instance gets its own independent copy — fine for read-mostly demo data, not a substitute for a real shared database.
+</details>
+
+<details>
+<summary><b>2. Vercel defaulted to Node 24.x, which SIGABRTs <code>better-sqlite3</code></b></summary>
+<br>
+
+```
+node[4]: void node::RemoveEnvironmentCleanupHook(...)
+Assertion failed: (env) != nullptr
+... Statement::~Statement() [better_sqlite3.node]
+```
+
+`better-sqlite3` doesn't yet have a stable prebuilt binary for the Node 24 ABI. Fixed by pinning `"engines": { "node": "22.x" }` in `package.json` (and on the Vercel project settings).
+</details>
+
+<details>
+<summary><b>3. A database-backed session table doesn't survive multiple serverless instances</b></summary>
+<br>
+
+The original session design looked up a random token against a `sessions` table — and a session created on one instance was invisible to another, so a plain page navigation could randomly bounce a signed-in user back to `/login`. Fixed by making the session a **self-contained signed cookie**: the user's claims (id, role, clearance, …) are HMAC-signed directly into the cookie, so verifying a session is pure cryptography with zero database read. This fixes auth specifically — it does **not** fix the same class of issue for accumulating data like chat messages or the audit ledger, which is the honest reason a from-scratch production deployment of this architecture would want a real hosted database (Postgres, Turso, etc.) instead of a single SQLite file.
+</details>
+
+---
+
+## 🗂️ Key files
+
+```
+src/lib/pipeline.ts          inspect → decide → dispatch → record
+src/lib/classify/            detectors, the Presidio NER adapter, the model adjudicator
+src/lib/policy/engine.ts     rule evaluation, admission checks, pin guards
+src/lib/llm/provider.ts      model connections and network boundaries
+src/lib/environments.ts      live capacity and status
+src/lib/deployments.ts       artefact lifecycle and the diode
+src/lib/audit.ts             the hash-chained ledger
+src/lib/auth.ts              stateless signed-cookie sessions
+src/lib/demo.ts              the scripted scenarios
+src/app/admin/*              the console
+src/app/chat/*, src/components/*   the chat UI
+```
+
+## ⚠️ Limitations
+
+- **One local model** serves all three environments locally (Cloud can use real Anthropic Claude). The separation between environments is real in routing, network boundaries and capacity — everything else about them is simulated.
+- **Attachments are text only.** No PDF or Office parsing.
+- **Auth is demo-grade.** Salted SHA-256 passwords, no rate limiting, and (per the Vercel notes above) no server-side session revocation — logout only clears the client cookie.
+- **The audit chain detects edits and deletions** anywhere before the latest entry. Silently truncating the end needs the head hash anchored somewhere outside the database.
+
+---
+
+<div align="center">
+
+Built with Next.js, TypeScript, and a genuine allergy to letting a model decide its own trust level.
+
+**[🚀 Try the live demo](https://mizan-gisec.vercel.app)**
+
+</div>
