@@ -47,11 +47,51 @@ function verifyToken(token: string): string | null {
   return signToken(raw) === token ? raw : null;
 }
 
-export async function createSession(userId: string): Promise<void> {
-  const raw = randomBytes(24).toString("hex");
+/**
+ * Sessions are a self-contained signed cookie, not a database row.
+ *
+ * They used to be a random token looked up against a `sessions` table. That
+ * broke on Vercel: requests for one visitor land on independent serverless
+ * instances, each with its own copy of the database, so a session created on
+ * instance A was invisible to instance B and a normal page navigation could
+ * bounce a signed-in user back to /login. Encoding the user's claims
+ * directly in the (HMAC-signed, httpOnly) cookie removes the database from
+ * the read path entirely — verifying a session is now pure cryptography, so
+ * it is consistent no matter which instance handles the request.
+ *
+ * Trade-off, stated plainly: there is no server-side revocation list, so
+ * "log out" only clears the cookie client-side — a captured cookie remains
+ * valid until it naturally expires (SESSION_TTL_MS). Acceptable for a
+ * demo-grade app (see hashPassword's own doc comment above); a real
+ * deployment would want a shared session/token-revocation store instead.
+ */
+interface SessionPayload {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  org: string;
+  clearance: Level;
+  exp: number;
+}
+
+function encodePayload(p: SessionPayload): string {
+  return Buffer.from(JSON.stringify(p)).toString("base64url");
+}
+
+function decodePayload(raw: string): SessionPayload | null {
+  try {
+    const p = JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as Partial<SessionPayload>;
+    if (typeof p.id !== "string" || typeof p.exp !== "number") return null;
+    return p as SessionPayload;
+  } catch {
+    return null;
+  }
+}
+
+export async function createSession(user: User): Promise<void> {
   const expires = now() + SESSION_TTL_MS;
-  db().prepare(`INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)`)
-    .run(raw, userId, expires);
+  const raw = encodePayload({ ...user, exp: expires });
   const jar = await cookies();
   jar.set(SESSION_COOKIE, signToken(raw), {
     httpOnly: true,
@@ -63,11 +103,6 @@ export async function createSession(userId: string): Promise<void> {
 
 export async function destroySession(): Promise<void> {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
-  if (token) {
-    const raw = verifyToken(token);
-    if (raw) db().prepare(`DELETE FROM sessions WHERE token = ?`).run(raw);
-  }
   jar.delete(SESSION_COOKIE);
 }
 
@@ -77,17 +112,10 @@ export async function currentUser(): Promise<User | null> {
   if (!token) return null;
   const raw = verifyToken(token);
   if (!raw) return null;
-  const row = db().prepare(
-    `SELECT u.id, u.email, u.name, u.role, u.org, u.clearance, s.expires_at
-       FROM sessions s JOIN users u ON u.id = s.user_id
-      WHERE s.token = ?`
-  ).get(raw) as (User & { expires_at: number }) | undefined;
-  if (!row) return null;
-  if (row.expires_at < now()) {
-    db().prepare(`DELETE FROM sessions WHERE token = ?`).run(raw);
-    return null;
-  }
-  const { expires_at: _drop, ...user } = row;
+  const payload = decodePayload(raw);
+  if (!payload) return null;
+  if (payload.exp < now()) return null;
+  const { exp: _drop, ...user } = payload;
   return user;
 }
 
