@@ -20,7 +20,7 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
     return { error: "Identity not recognised, or passphrase incorrect." };
   }
 
-  await createSession(user.id);
+  await createSession(user);
   writeAudit({
     actor: user.email, kind: "auth.granted", subject: user.id,
     summary: `${user.name} signed in · clearance ${user.clearance}`,
