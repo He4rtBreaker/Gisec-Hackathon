@@ -180,7 +180,7 @@ export default function Composer({
                 disabled={!value.trim() && !files.length}
                 className="shrink-0 rounded-full bg-primary px-4 py-1.5 font-mono text-[11px]
                            font-semibold tracking-[0.10em] text-white transition
-                           hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
+                           hover:bg-primary-active disabled:cursor-not-allowed disabled:opacity-30"
               >
                 SEND
               </button>

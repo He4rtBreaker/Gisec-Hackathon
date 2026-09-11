@@ -10,8 +10,8 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="mt-6 w-full rounded-lg bg-primary px-4 py-2.5 font-mono text-[12px] font-semibold
-                 tracking-[0.12em] text-base transition hover:opacity-90
+      className="mt-6 w-full rounded-full bg-primary px-4 py-2.5 text-[13px] font-medium
+                 tracking-[0.06em] text-white transition hover:bg-primary-active
                  disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? "VERIFYING…" : "AUTHENTICATE"}

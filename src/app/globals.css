@@ -1,53 +1,55 @@
 @import "tailwindcss";
 
 @theme {
-  /* Editorial pairing — serif display, humanist sans body, mono for data */
-  --font-serif: "Cormorant Garamond", "Tiempos Headline", Garamond, "Times New Roman", serif;
+  /* Quiet analyst's desk — warm stone canvas, one cyan accent, Inter throughout.
+     Token names stay stable across theme changes; only values move. */
+  --font-serif: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;  /* display/headings/wordmark */
   --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-mono:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;  /* no monospace in this system */
 
-  /* Surfaces — warm tinted cream, never pure white */
-  --color-base:      #faf9f5;  /* page floor */
-  --color-surface:   #f5f0e8;  /* soft bands, section dividers */
-  --color-raised:    #efe9de;  /* cards, chips */
-  --color-overlay:   #fdfcf8;  /* panels, popovers — a hair above canvas */
-  --color-line:      #e6dfd8;  /* hairline on cream */
-  --color-line-soft: #ebe6df;  /* barely-visible divider */
+  /* Surfaces — warm stone, never pure-white canvas */
+  --color-base:      #fafaf9;  /* page floor — stone canvas */
+  --color-surface:   #f5f4f3;  /* soft bands, nav background */
+  --color-raised:    #ffffff;  /* cards, chips, hover fills */
+  --color-overlay:   #ffffff;  /* panels, popovers */
+  --color-line:      #e8e6e5;  /* hairline — the primary structural device */
+  --color-line-soft: #efedeb;  /* barely-visible divider */
 
-  /* Dark navy product surfaces */
-  --color-dark:          #181715;
-  --color-dark-elevated: #252320;
-  --color-dark-soft:     #1f1e1b;
-  --color-on-dark:       #faf9f5;
-  --color-on-dark-soft:  #a09d96;
+  /* Dark inverted surfaces — used sparingly (diode/active-step chrome) */
+  --color-dark:          #1c1917;
+  --color-dark-elevated: #292524;
+  --color-dark-soft:     #24211f;
+  --color-on-dark:       #fafaf9;
+  --color-on-dark-soft:  #a8a29e;
 
-  /* Text — warm ink */
-  --color-ink:       #141413;
-  --color-ink-mid:   #3d3d3a;
-  --color-ink-dim:   #6c6a64;
-  --color-ink-faint: #8e8b82;
+  /* Text — warm stone scale */
+  --color-ink:       #0c0a09;
+  --color-ink-mid:   #44403c;
+  --color-ink-dim:   #78716c;
+  --color-ink-faint: #a8a29e;
 
-  /* Brand — coral. Scarce on buttons, generous on full-bleed callouts. */
-  --color-primary:        #cc785c;
-  --color-primary-active:  #a9583e;
-  --color-primary-soft:   #cc785c1f;
+  /* Brand — a single cyan signal. Scarce: one filled CTA per view. */
+  --color-primary:        #3ba6f1;
+  --color-primary-active:  #3398e1;
+  --color-primary-soft:   #3ba6f11f;
 
-  /* Environment + classification signals — warm-harmonised, kept distinct */
-  --color-cloud:       #4f96a4;            /* PUBLIC · Public Cloud */
-  --color-cloud-soft:  #4f96a41f;
-  --color-official:      #c1863c;          /* OFFICIAL */
-  --color-official-soft: #c1863c1f;
-  --color-onprem:      #5c8b50;            /* CONFIDENTIAL · Sovereign On-Prem */
-  --color-onprem-soft: #5c8b501f;
-  --color-airgap:      #4a4440;            /* SECRET · Air-Gapped Enclave */
-  --color-airgap-soft: #4a44401a;
+  /* Environment + classification signals — functional, not decorative.
+     Cloud rides the brand cyan; the rest stay muted stone-adjacent hues. */
+  --color-cloud:       #3398e1;            /* PUBLIC · Public Cloud */
+  --color-cloud-soft:  #3ba6f11a;
+  --color-official:      #a3814a;          /* OFFICIAL */
+  --color-official-soft: #a3814a1a;
+  --color-onprem:      #64815a;            /* CONFIDENTIAL · Sovereign On-Prem */
+  --color-onprem-soft: #64815a1a;
+  --color-airgap:      #1c1917;            /* SECRET · Air-Gapped Enclave */
+  --color-airgap-soft: #1c19171a;
 
   /* Status */
-  --color-deny:      #c64545;
-  --color-deny-soft: #c645451a;
-  --color-warn:      #c99a1f;
-  --color-warn-soft: #c99a1f1f;
-  --color-ok:        #5c8b50;
+  --color-deny:      #c1443c;
+  --color-deny-soft: #c1443c1a;
+  --color-warn:      #b8902b;
+  --color-warn-soft: #b8902b1a;
+  --color-ok:        #64815a;
 }
 
 @layer base {
@@ -57,15 +59,15 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  /* Serif display — weight 500, negative tracking. The editorial voice. */
+  /* Display — weight 400, tight negative tracking. Authority through restraint. */
   h1, h2, h3, .mz-display {
     font-family: var(--font-serif);
-    font-weight: 500;
-    letter-spacing: -0.015em;
+    font-weight: 400;
+    letter-spacing: -0.02em;
   }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: #d9d0c4; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #c7bcac; }
+  ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c2beba; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::selection { background: var(--color-primary-soft); }
 }
@@ -75,47 +77,48 @@
   .mz-label {
     font-family: var(--font-mono);
     font-size: 10px;
-    letter-spacing: 0.14em;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-ink-dim);
   }
   .mz-panel {
     background: var(--color-overlay);
     border: 1px solid var(--color-line);
-    border-radius: 12px;
+    border-radius: 10px;
   }
   .mz-field {
-    background: var(--color-base);
+    background: var(--color-raised);
     border: 1px solid var(--color-line);
-    border-radius: 8px;
+    border-radius: 6px;
     color: var(--color-ink);
     outline: none;
   }
   .mz-field:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--color-primary-soft);
+    box-shadow: 0 0 0 2px var(--color-primary-soft);
   }
-  /* Coral primary CTA */
+  /* Cyan primary CTA — pill-shaped, the one filled chromatic element */
   .mz-btn {
     background: var(--color-primary);
     color: #fff;
-    border-radius: 8px;
+    border-radius: 9999px;
     font-weight: 500;
     transition: background-color 0.15s ease;
   }
   .mz-btn:hover { background: var(--color-primary-active); }
   .mz-btn:active { background: var(--color-primary-active); }
   .mz-btn:disabled {
-    background: var(--color-primary-disabled, #e6dfd8);
-    color: var(--color-ink-dim);
+    background: var(--color-line);
+    color: var(--color-ink-faint);
     cursor: not-allowed;
   }
-  /* Elevation for popovers — warm, minimal */
+  /* Elevation for popovers — flat card + soft lift, no heavy shadow */
   .mz-pop {
     background: var(--color-overlay);
     border: 1px solid var(--color-line);
-    box-shadow: 0 1px 3px rgba(20, 20, 19, 0.08),
-                0 12px 32px rgba(20, 20, 19, 0.12);
+    box-shadow: 0 4px 16px rgba(12, 10, 9, 0.06),
+                0 1px 2px rgba(12, 10, 9, 0.04);
   }
 }
 
