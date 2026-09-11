@@ -63,7 +63,7 @@ function Empty({ onSuggest }: { onSuggest?: (text: string) => void }) {
         className="mz-anim-float mb-5 h-[132px] w-[132px] object-contain opacity-95 select-none"
         draggable={false}
       />
-      <div className="font-serif text-[34px] font-medium tracking-tight text-ink">Mizan</div>
+      <div className="font-serif text-[34px] font-normal tracking-tight text-ink">Mizan</div>
       <p className="mt-4 max-w-[420px] text-[14px] leading-relaxed text-ink-dim">
         Describe what you need. Every request is inspected on sovereign infrastructure
         before it is allowed to reach a model.

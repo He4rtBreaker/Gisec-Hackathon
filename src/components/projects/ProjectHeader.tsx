@@ -24,7 +24,7 @@ export default function ProjectHeader({ projectId, name, description }: {
         <div className="flex items-center gap-2">
           <button type="submit" disabled={pending}
                   className="rounded-full bg-primary px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.08em]
-                             text-white transition hover:opacity-90 disabled:opacity-60">
+                             text-white transition hover:bg-primary-active disabled:opacity-60">
             {pending ? "SAVING…" : "SAVE"}
           </button>
           <button type="button" onClick={() => setEditing(false)}

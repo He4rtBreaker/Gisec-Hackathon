@@ -1,11 +1,11 @@
 {
-  "style": "anthropic-claude-hand-drawn",
+  "style": "rough-sketch",
   "source": "Icons8 Ouch (https://icons8.com/illustrations)",
-  "note": "Hand-drawn ink + single warm watercolor accent. UI-only additions for empty / error / hero states. PNG (no SVG available for this style).",
+  "note": "Monochrome hand-sketched ink, no fills — matches the Seline design system (grayscale outline imagery, one cyan accent everywhere else). Replaces the earlier anthropic-claude-hand-drawn set. PNG only (no SVG for this style).",
   "slots": {
     "chat-empty": {
-      "id": "6a427dce79534a1e16a26c64",
-      "heading": "Magnifying glass inspecting document symbol for search and review",
+      "id": "6a5a34eafcf77be9b43478bb",
+      "heading": "Resume review document under magnifying glass for detailed content analysis",
       "file": "public/illustrations/inspect-document.png",
       "width": 640,
       "height": 640,
@@ -13,35 +13,17 @@
       "used_in": "src/components/MessageList.tsx (Empty)"
     },
     "sidebar-empty": {
-      "id": "6a6c7788a6569e563cb70317",
-      "heading": "Voice assistant sparkle held in hand with messaging bubble nearby",
+      "id": "6a72cff0a6569e563cb703bb",
+      "heading": "Notification bell above envelope indicating new message alert received",
       "file": "public/illustrations/assistant-ready.png",
       "width": 640,
       "height": 640,
       "free_distribution": false,
       "used_in": "src/components/Sidebar.tsx + src/components/admin/AdminNav.tsx (no chats)"
     },
-    "projects-empty": {
-      "id": "68a9150940f8ae0001d0e19e",
-      "heading": "Hand flipping through documents",
-      "file": "public/illustrations/projects-empty.png",
-      "width": 640,
-      "height": 640,
-      "free_distribution": false,
-      "used_in": "src/app/projects/page.tsx (no projects)"
-    },
-    "knowledge-empty": {
-      "id": "69cec2b47c1c2df2ff4e3ffe",
-      "heading": "Drag and drop file upload, Dragging document to drop zone",
-      "file": "public/illustrations/knowledge-empty.png",
-      "width": 640,
-      "height": 640,
-      "free_distribution": false,
-      "used_in": "src/components/projects/ProjectKnowledge.tsx (no files)"
-    },
     "refusal": {
-      "id": "6a9812a30e92acb186740f48",
-      "heading": "Lock held in hand symbolizing data protection and online security",
+      "id": "6a58d59c2f5b7e3c235e6ba1",
+      "heading": "Gesture hand sketch with outstretched fingers expressing stop signal",
       "file": "public/illustrations/refused-sealed.png",
       "width": 640,
       "height": 640,
@@ -49,8 +31,8 @@
       "used_in": "src/components/RefusalCard.tsx"
     },
     "audit-empty": {
-      "id": "6a295d0ff8947031464999dc",
-      "heading": "Document storage box for office filing system and record keeping",
+      "id": "6a72cfefa6569e563cb703b9",
+      "heading": "Checklist clipboard with pen marking completed survey answer boxes",
       "file": "public/illustrations/audit-empty.png",
       "width": 640,
       "height": 640,
@@ -58,13 +40,40 @@
       "used_in": "src/app/admin/audit/page.tsx (no rows)"
     },
     "login-hero": {
-      "id": "69ab0cf64707ff0001057d08",
-      "heading": "Cybersecurity and data protection, Privacy and information security",
+      "id": "6a58d5942f5b7e3c235e6b8a",
+      "heading": "Cybersecurity shield icon with keyhole indicating secure login access",
       "file": "public/illustrations/sovereign-shield.png",
       "width": 640,
       "height": 640,
       "free_distribution": false,
       "used_in": "src/app/login/page.tsx (identity brief panel)"
+    },
+    "projects-empty": {
+      "id": "6a5a283af3dc6981a3ea415a",
+      "heading": "Document contract page with signature and ballpoint pen beside it",
+      "file": "public/illustrations/projects-empty.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/app/projects/page.tsx (no projects)"
+    },
+    "knowledge-empty": {
+      "id": "6a5a25019444f10db9a4fe86",
+      "heading": "To do list sheet with completed task and pencil beside",
+      "file": "public/illustrations/knowledge-empty.png",
+      "width": 640,
+      "height": 640,
+      "free_distribution": false,
+      "used_in": "src/components/projects/ProjectKnowledge.tsx (no files)"
+    }
+  },
+  "icons": {
+    "scan": {
+      "id": "67512",
+      "platform": "carbon_copy",
+      "heading": "Search (Outline Hand Drawn)",
+      "file": "public/icons/scan.svg",
+      "used_in": "src/components/InspectionCard.tsx (InspectingStrip animation + REASONING glyph)"
     }
   }
 }

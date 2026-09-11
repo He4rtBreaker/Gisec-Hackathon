@@ -46,7 +46,7 @@ export default function PolicySimulator({ signals }: { signals: Array<{ code: st
           </label>
           <button type="submit" disabled={pending}
                   className="rounded-full bg-primary px-4 py-2 font-mono text-[11px] font-semibold tracking-[0.08em]
-                             text-white transition hover:opacity-90 disabled:opacity-60">
+                             text-white transition hover:bg-primary-active disabled:opacity-60">
             {pending ? "EVALUATING…" : "EVALUATE"}
           </button>
         </div>
