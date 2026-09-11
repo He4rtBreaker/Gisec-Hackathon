@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import EnvSelector from "./EnvSelector";
 import ProjectPicker from "./ProjectPicker";
+import ElectricBorder from "./ElectricBorder";
 import type { EnvKey, Level } from "@/lib/domain";
 import type { ProjectOption } from "@/lib/projects";
 
@@ -45,6 +46,7 @@ export default function Composer({
   const [value, setValue] = useState("");
   const [files, setFiles] = useState<DraftAttachment[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -92,14 +94,14 @@ export default function Composer({
     });
   }
 
-  return (
-    <div className="shrink-0 px-5 pb-5 pt-2">
-      <div className="mx-auto w-full max-w-[760px]">
-        <div
-          className="rounded-2xl border border-line bg-overlay p-3 shadow-[0_1px_2px_rgba(12,10,9,0.04)]
-                     transition-all duration-150 focus-within:border-primary
-                     focus-within:shadow-[0_0_0_3px_var(--color-primary-soft),0_4px_16px_rgba(12,10,9,0.07)]"
-        >
+  const box = (
+    <div
+      className={`rounded-2xl border bg-overlay p-3 transition-all duration-150 ${
+        focused
+          ? "border-transparent"
+          : "border-line shadow-[0_1px_2px_rgba(12,10,9,0.04)]"
+      }`}
+    >
           {files.length > 0 && (
             <div className="flex flex-wrap gap-1.5 px-1 pb-1.5">
               {files.map((f, i) => (
@@ -187,6 +189,26 @@ export default function Composer({
               </button>
             )}
           </div>
+    </div>
+  );
+
+  return (
+    <div className="shrink-0 px-5 pb-5 pt-2">
+      <div className="mx-auto w-full max-w-[760px]">
+        <div
+          className="rounded-2xl"
+          onFocus={() => setFocused(true)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false);
+          }}
+        >
+          {focused ? (
+            <ElectricBorder color="#3ba6f1" speed={0.7} chaos={0.05} borderRadius={16}>
+              {box}
+            </ElectricBorder>
+          ) : (
+            box
+          )}
         </div>
 
         {fileError && <p className="mt-1.5 text-[11.5px] text-deny">{fileError}</p>}

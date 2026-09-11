@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ClickSpark from "@/components/ClickSpark";
 
 export const metadata: Metadata = {
   title: "Mizan · Hybrid Deployment Orchestrator",
@@ -17,7 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ClickSpark sparkColor="#3ba6f1" sparkSize={9} sparkRadius={13} sparkCount={9} duration={380}>
+          {children}
+        </ClickSpark>
+      </body>
     </html>
   );
 }
