@@ -1,6 +1,7 @@
 import { LEVEL_RANK, LEVELS, maxLevel, type Level } from "../domain";
 import { getProvider } from "../llm/provider";
 import { detect, type Signal } from "./detectors";
+import { analyzeWithPresidio } from "./presidio";
 
 export type { Signal } from "./detectors";
 
@@ -15,6 +16,9 @@ export interface Classification {
   latencyMs: number;
   /** True when the model was unreachable and rules alone decided. */
   degraded: boolean;
+  /** False when the optional NER analyzer (Presidio) could not be reached —
+   *  recall is reduced, but the regex floor and the adjudicator still hold. */
+  nerAvailable: boolean;
 }
 
 export interface ClassifyInput {
@@ -97,18 +101,16 @@ export async function classify(input: ClassifyInput): Promise<Classification> {
   const started = Date.now();
   const subject = buildSubject(input);
 
-  const signals = detect(subject);
-  const floor = ruleFloor(signals);
-
-  let verdict: ReturnType<typeof parseVerdict> = null;
-  let degraded = false;
+  const ruleSignals = detect(subject);
 
   const inspector = getProvider("inspector");
-  if (inspector.id === "mock") {
-    // No real model on the inspector — the detector rules classify alone,
-    // exactly as the offline mode is documented to work.
-    degraded = true;
-  } else {
+
+  async function adjudicate(): Promise<{ verdict: ReturnType<typeof parseVerdict>; degraded: boolean }> {
+    if (inspector.id === "mock") {
+      // No real model on the inspector — the detector rules classify alone,
+      // exactly as the offline mode is documented to work.
+      return { verdict: null, degraded: true };
+    }
     try {
       const raw = await inspector.complete({
         system: ADJUDICATOR_SYSTEM,
@@ -117,14 +119,26 @@ export async function classify(input: ClassifyInput): Promise<Classification> {
         maxTokens: 400,
         json: true,
       });
-      verdict = parseVerdict(raw);
-      if (!verdict) degraded = true;
+      const verdict = parseVerdict(raw);
+      return { verdict, degraded: !verdict };
     } catch {
       // Inspector unavailable. Rules still hold, and we say so rather than
       // silently downgrading to a permissive default.
-      degraded = true;
+      return { verdict: null, degraded: true };
     }
   }
+
+  // The adjudicator and the NER analyzer (Presidio) are two independent
+  // on-prem network calls — run them concurrently rather than paying both
+  // latencies back to back.
+  const [{ verdict, degraded }, presidio] = await Promise.all([adjudicate(), analyzeWithPresidio(subject)]);
+
+  // Presidio adds recall (it catches identifying information no regex can),
+  // never the safety floor itself — that's still whatever the rule detectors
+  // alone would have matched. Concatenating is enough: the two sources use
+  // disjoint code namespaces, so there is nothing to de-duplicate.
+  const signals = [...ruleSignals, ...presidio.signals];
+  const floor = ruleFloor(signals);
 
   // The model may escalate above the rule floor, never below it.
   const level = verdict ? maxLevel(floor, verdict.level) : floor;
@@ -150,6 +164,10 @@ export async function classify(input: ClassifyInput): Promise<Classification> {
       `${describeSignals(signals)}.`;
   }
 
+  if (!presidio.available) {
+    rationale += " NER analyzer offline — recall limited to rule-based detectors.";
+  }
+
   return {
     level,
     confidence,
@@ -158,5 +176,6 @@ export async function classify(input: ClassifyInput): Promise<Classification> {
     inspector: `on-prem/${getProvider("inspector").id}:${getProvider("inspector").model}`,
     latencyMs: Date.now() - started,
     degraded,
+    nerAvailable: presidio.available,
   };
 }

@@ -192,6 +192,7 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     inspector: cls.inspector,
     latencyMs: cls.latencyMs,
     degraded: cls.degraded,
+    nerAvailable: cls.nerAvailable,
     context: contextSummary,
   });
 

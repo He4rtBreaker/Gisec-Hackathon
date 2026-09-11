@@ -10,6 +10,7 @@ export interface Signal {
   level: Level;
   count: number;
   sample: string;
+  source?: "rule" | "ner";
 }
 
 export interface Inspection {
@@ -20,6 +21,9 @@ export interface Inspection {
   inspector: string;
   latencyMs: number;
   degraded: boolean;
+  /** False when the optional NER analyzer (Presidio) was unreachable. Not a
+   *  safety degradation — the rule floor still holds — just reduced recall. */
+  nerAvailable?: boolean;
   /** Filled once routing resolves. */
   envName?: string;
   routeReason?: string;
@@ -112,6 +116,16 @@ export default function InspectionCard({ data }: { data: Inspection }) {
           <span className="rounded border border-warn/40 bg-warn-soft px-1.5 py-px font-mono
                            text-[9px] tracking-[0.10em] text-warn">
             RULES ONLY
+          </span>
+        )}
+
+        {data.nerAvailable === false && (
+          <span
+            title="The optional NER analyzer (Presidio) was unreachable — the rule floor and adjudicator still ran normally."
+            className="rounded border border-line bg-surface px-1.5 py-px font-mono
+                       text-[9px] tracking-[0.10em] text-ink-faint"
+          >
+            NER OFF
           </span>
         )}
 
