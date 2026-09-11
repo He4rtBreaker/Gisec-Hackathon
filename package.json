@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "seed": "node --experimental-strip-types src/lib/db/seed.ts"
+    "seed": "node --experimental-strip-types src/lib/db/seed.ts",
+    "vercel-build": "MIZAN_DB=\"$PWD/mizan.db\" npx tsx src/lib/db/seed.ts && next build"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19.0.3",
     "shadcn": "^4.21.0",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.23.13",
     "typescript": "^5.7.3"
   }
 }
