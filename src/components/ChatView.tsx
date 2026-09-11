@@ -147,7 +147,7 @@ export default function ChatView({
             const e = evt as unknown as {
               level: Inspection["level"]; sealLevel: Inspection["level"]; confidence: number;
               rationale: string; signals: Inspection["signals"]; inspector: string;
-              latencyMs: number; degraded: boolean; context: Inspection["context"];
+              latencyMs: number; degraded: boolean; nerAvailable: boolean; context: Inspection["context"];
             };
             await holdInspect();
             setSeal(e.sealLevel);
@@ -157,7 +157,7 @@ export default function ChatView({
               inspection: {
                 level: e.level, confidence: e.confidence, rationale: e.rationale,
                 signals: e.signals, inspector: e.inspector,
-                latencyMs: e.latencyMs, degraded: e.degraded, context: e.context,
+                latencyMs: e.latencyMs, degraded: e.degraded, nerAvailable: e.nerAvailable, context: e.context,
               },
             }));
           } else if (evt.type === "routed") {
