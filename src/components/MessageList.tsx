@@ -24,13 +24,6 @@ export interface UiMessage {
   attachments?: Array<{ filename: string; size: number }>;
 }
 
-const SUGGESTIONS: Array<{ level: string; dot: string; text: string }> = [
-  { level: "PUBLIC",       dot: "bg-cloud",    text: "What is the capital of the UAE, and when was the federation formed?" },
-  { level: "OFFICIAL",     dot: "bg-official", text: "Draft a short note to the committee about tender PO-2291 for office supplies." },
-  { level: "CONFIDENTIAL", dot: "bg-onprem",   text: "Summarise: employee Emirates ID 784-1990-1234567-1, monthly payroll AED 42,000." },
-  { level: "SECRET",       dot: "bg-airgap",   text: "SECRET // Summarise troop movements near the northern sector." },
-];
-
 const ENV_TEXT: Record<EnvKey, string> = {
   cloud: "text-cloud",
   onprem: "text-onprem",
@@ -53,40 +46,17 @@ function EnvBadge({ envKey }: { envKey: EnvKey }) {
   );
 }
 
-function Empty({ onSuggest }: { onSuggest?: (text: string) => void }) {
+function Empty() {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 text-center">
       <img
         src="/illustrations/inspect-document.png"
         alt=""
         aria-hidden
-        className="mz-anim-float mb-5 h-[132px] w-[132px] object-contain opacity-95 select-none"
+        className="mz-anim-float mb-6 h-[104px] w-[104px] object-contain opacity-90 select-none"
         draggable={false}
       />
       <div className="font-serif text-[34px] font-normal tracking-tight text-ink">Mizan</div>
-      <p className="mt-4 max-w-[420px] text-[14px] leading-relaxed text-ink-dim">
-        Describe what you need. Every request is inspected on sovereign infrastructure
-        before it is allowed to reach a model.
-      </p>
-      {onSuggest && (
-        <div className="mt-7 grid w-full max-w-[640px] grid-cols-1 gap-2 text-left sm:grid-cols-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s.level}
-              type="button"
-              onClick={() => onSuggest(s.text)}
-              className="rounded-xl border border-line bg-overlay px-3.5 py-2.5 transition
-                         hover:border-ink-faint hover:shadow-[0_2px_10px_rgba(20,20,19,0.08)]"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                <span className="mz-label">{s.level}</span>
-              </span>
-              <span className="mt-1 block text-[12.5px] leading-snug text-ink-mid">{s.text}</span>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -119,7 +89,7 @@ export default function MessageList({
   }, [messages]);
 
   if (messages.length === 0) {
-    return <div className="min-h-0 flex-1 overflow-y-auto"><Empty onSuggest={onSuggest} /></div>;
+    return <div className="min-h-0 flex-1 overflow-y-auto"><Empty /></div>;
   }
 
   return (
