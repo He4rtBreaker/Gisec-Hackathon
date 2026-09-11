@@ -1,14 +1,38 @@
 import Database from "better-sqlite3";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 let _db: Database.Database | null = null;
 const g = globalThis as unknown as { __mizanBooted?: boolean };
 
+/**
+ * Vercel's serverless functions run on a read-only filesystem outside /tmp,
+ * and /tmp itself is wiped between cold starts and never shared across
+ * concurrent instances — a poor fit for a single-writer SQLite file, but the
+ * closest thing available without a real migration to a hosted database.
+ *
+ * The fix: "vercel-build" (package.json) seeds mizan.db into the deployment
+ * bundle at build time, read-only from then on. At runtime, each cold
+ * instance copies that seeded file into /tmp once, then treats /tmp as home.
+ * Writes made after that point live only as long as that instance — a
+ * reasonable trade for a demo, not a substitute for real persistence.
+ */
+function resolveDbPath(): string {
+  if (process.env.MIZAN_DB) return process.env.MIZAN_DB;
+  if (!process.env.VERCEL) return join(process.cwd(), "mizan.db");
+
+  const runtime = "/tmp/mizan.db";
+  if (!existsSync(runtime)) {
+    const seeded = join(process.cwd(), "mizan.db");
+    if (existsSync(seeded)) copyFileSync(seeded, runtime);
+  }
+  return runtime;
+}
+
 export function db(): Database.Database {
   if (_db) return _db;
-  const file = process.env.MIZAN_DB ?? join(process.cwd(), "mizan.db");
+  const file = resolveDbPath();
   const conn = new Database(file);
   conn.pragma("journal_mode = WAL");
   conn.pragma("foreign_keys = ON");
