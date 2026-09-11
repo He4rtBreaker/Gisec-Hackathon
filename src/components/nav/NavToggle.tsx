@@ -1,6 +1,6 @@
 "use client";
 
-import { navSet, useNav } from "./useNav";
+import { navSet, peekCloseSoon, peekOpen, useNav } from "./useNav";
 
 function PanelIcon({ className }: { className?: string }) {
   return (
@@ -14,9 +14,8 @@ function PanelIcon({ className }: { className?: string }) {
 
 /**
  * - "footer": the collapse control in the sidebar's identity row. Hidden while collapsed.
- * - "edge":   collapsed-mode chrome — a button that peeks the sidebar open on hover
- *             and pins it open on click, plus an off-sidebar catcher that dismisses
- *             the peek the moment the pointer moves away.
+ * - "edge":   the panel button at the top-left while collapsed — hover to peek the
+ *             sidebar open (claude.ai-style, with a short close delay), click to pin it.
  */
 export default function NavToggle({ placement }: { placement: "footer" | "edge" }) {
   const { collapsed, peek } = useNav();
@@ -40,28 +39,18 @@ export default function NavToggle({ placement }: { placement: "footer" | "edge" 
   // placement === "edge"
   if (!collapsed) return null;
   return (
-    <>
-      {/* While peeked, anywhere off the sidebar dismisses it. Sits below the aside (z-40). */}
-      {peek && (
-        <div
-          onMouseEnter={() => navSet({ peek: false })}
-          className="fixed inset-0 z-30"
-          aria-hidden
-        />
-      )}
-      {/* Hover to peek, click to pin open. Always reachable at the top-left. */}
-      <button
-        type="button"
-        onClick={() => navSet({ collapsed: false })}
-        onMouseEnter={() => navSet({ peek: true })}
-        aria-label="Open navigation"
-        title="Open navigation"
-        className={`fixed left-2.5 top-2.5 z-50 flex h-8 w-8 items-center justify-center rounded-full
-                    border border-line bg-base text-ink-dim shadow-sm transition
-                    hover:border-ink-faint hover:text-ink ${peek ? "opacity-0" : "opacity-100"}`}
-      >
-        <PanelIcon className="h-[15px] w-[15px]" />
-      </button>
-    </>
+    <button
+      type="button"
+      onClick={() => navSet({ collapsed: false })}
+      onMouseEnter={peekOpen}
+      onMouseLeave={() => peekCloseSoon()}
+      aria-label="Open navigation"
+      title="Open navigation"
+      className={`fixed left-2.5 top-2.5 z-50 flex h-8 w-8 items-center justify-center rounded-full
+                  border border-line bg-base text-ink-dim shadow-sm transition
+                  hover:border-ink-faint hover:text-ink ${peek ? "opacity-0" : "opacity-100"}`}
+    >
+      <PanelIcon className="h-[15px] w-[15px]" />
+    </button>
   );
 }
