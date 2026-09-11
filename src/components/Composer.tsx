@@ -96,8 +96,9 @@ export default function Composer({
     <div className="shrink-0 px-5 pb-5 pt-2">
       <div className="mx-auto w-full max-w-[760px]">
         <div
-          className="rounded-2xl border border-line bg-overlay p-2.5 transition
-                     focus-within:border-cloud focus-within:shadow-[0_0_0_3px_var(--color-cloud-soft)]"
+          className="rounded-2xl border border-line bg-overlay p-3 shadow-[0_1px_2px_rgba(12,10,9,0.04)]
+                     transition-all duration-150 focus-within:border-primary
+                     focus-within:shadow-[0_0_0_3px_var(--color-primary-soft),0_4px_16px_rgba(12,10,9,0.07)]"
         >
           {files.length > 0 && (
             <div className="flex flex-wrap gap-1.5 px-1 pb-1.5">
