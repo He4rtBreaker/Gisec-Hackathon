@@ -14,9 +14,9 @@ Built for **GISEC 2026**
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![SQLite](https://img.shields.io/badge/better--sqlite3-storage-003b57?logo=sqlite&logoColor=white)](https://github.com/WiseLibs/better-sqlite3)
 [![Presidio](https://img.shields.io/badge/Microsoft%20Presidio-NER%20layer-0078d4?logo=microsoft&logoColor=white)](https://github.com/microsoft/presidio)
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)](https://mizan-gisec.vercel.app)
+[![Deployed on Railway](https://img.shields.io/badge/Deployed%20on-Railway-0B0D0E?logo=railway&logoColor=white)](https://mizan-production-4204.up.railway.app/login)
 
-**[🚀 Live demo →](https://mizan-gisec.vercel.app)**
+**[🚀 Live demo →](https://mizan-production-4204.up.railway.app/login)**
 
 </div>
 
@@ -238,9 +238,9 @@ Every user gets Projects: a name, instructions, and up to 25 text files (200 KB 
 
 ---
 
-## ☁️ Deploying elsewhere (what we learned shipping this to Vercel)
+## ☁️ Deploying elsewhere (what we learned shipping this to Vercel, then Railway)
 
-The live demo above runs on Vercel, and getting there surfaced three real lessons worth documenting rather than hiding:
+The live demo above now runs on Railway. It first shipped to Vercel, and getting there surfaced three real lessons worth documenting rather than hiding — the file-based SQLite database's statelessness across serverless instances (lesson 3 below) is exactly why the demo later moved to Railway's persistent container model instead:
 
 <details>
 <summary><b>1. Vercel's filesystem is read-only outside <code>/tmp</code> — a file-based SQLite app needs a build-time seed + a runtime copy</b></summary>
@@ -291,7 +291,7 @@ src/app/chat/*, src/components/*   the chat UI
 
 - **One local model** serves all three environments locally (Cloud can use real Anthropic Claude). The separation between environments is real in routing, network boundaries and capacity — everything else about them is simulated.
 - **Attachments are text only.** No PDF or Office parsing.
-- **Auth is demo-grade.** Salted SHA-256 passwords, no rate limiting, and (per the Vercel notes above) no server-side session revocation — logout only clears the client cookie.
+- **Auth is demo-grade.** Salted SHA-256 passwords, no rate limiting, and (per the notes above) no server-side session revocation — logout only clears the client cookie.
 - **The audit chain detects edits and deletions** anywhere before the latest entry. Silently truncating the end needs the head hash anchored somewhere outside the database.
 
 ---
@@ -300,6 +300,6 @@ src/app/chat/*, src/components/*   the chat UI
 
 Built with Next.js, TypeScript, and a genuine allergy to letting a model decide its own trust level.
 
-**[🚀 Try the live demo](https://mizan-gisec.vercel.app)**
+**[🚀 Try the live demo](https://mizan-production-4204.up.railway.app/login)**
 
 </div>
