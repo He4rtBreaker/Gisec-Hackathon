@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import EnvSelector from "./EnvSelector";
 import ProjectPicker from "./ProjectPicker";
-import ElectricBorder from "./ElectricBorder";
 import type { EnvKey, Level } from "@/lib/domain";
 import type { ProjectOption } from "@/lib/projects";
 
@@ -98,7 +97,7 @@ export default function Composer({
     <div
       className={`rounded-2xl border bg-overlay p-3 transition-all duration-150 ${
         focused
-          ? "border-transparent"
+          ? "border-primary shadow-[0_0_0_2px_var(--color-primary-soft)]"
           : "border-line shadow-[0_1px_2px_rgba(12,10,9,0.04)]"
       }`}
     >
@@ -202,13 +201,7 @@ export default function Composer({
             if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false);
           }}
         >
-          {focused ? (
-            <ElectricBorder color="#3ba6f1" speed={0.7} chaos={0.05} borderRadius={16}>
-              {box}
-            </ElectricBorder>
-          ) : (
-            box
-          )}
+          {box}
         </div>
 
         {fileError && <p className="mt-1.5 text-[11.5px] text-deny">{fileError}</p>}

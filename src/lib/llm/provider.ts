@@ -6,7 +6,7 @@ import type { EnvKey } from "../domain";
  * Each execution environment — and the on-prem inspector — has its own
  * binding. By default all of them point at the same local Ollama daemon;
  * `MIZAN_PROVIDER_<BINDING>` (and `OLLAMA_HOST_<BINDING>`, `OLLAMA_MODEL_<BINDING>`,
- * `ANTHROPIC_MODEL_<BINDING>`) move any one of them elsewhere.
+ * `ANTHROPIC_MODEL_<BINDING>`, `GROQ_MODEL_<BINDING>`) move any one of them elsewhere.
  *
  * Every binding also carries a network boundary. A provider's HTTP client is
  * wrapped so it physically cannot reach a host outside that boundary: the
@@ -264,6 +264,96 @@ class AnthropicProvider implements Provider {
   }
 }
 
+/* -------------------------------------------------------------------- groq */
+
+/**
+ * Groq's hosted inference API, which speaks the OpenAI chat-completions
+ * dialect. It is public cloud: only the cloud binding can reach it, and the
+ * boundary fetch refuses the call from anywhere else.
+ */
+class GroqProvider implements Provider {
+  readonly id = "groq";
+  constructor(
+    readonly model: string,
+    private readonly apiKey: string,
+    readonly endpoint: string,
+    private readonly fetcher: Fetcher,
+  ) {}
+
+  private body(opts: CompleteOptions, stream: boolean) {
+    const messages: ChatMessage[] = opts.system
+      ? [{ role: "system", content: opts.system }, ...opts.messages]
+      : opts.messages;
+    return JSON.stringify({
+      model: this.model,
+      messages,
+      stream,
+      temperature: opts.temperature ?? 0.7,
+      max_tokens: opts.maxTokens ?? 2048,
+      // The open-weight models here deliberate before answering. A structured
+      // verdict wants the answer, and reasoning arrives on its own delta field.
+      ...(opts.json ? { response_format: { type: "json_object" }, reasoning_effort: "low" } : {}),
+    });
+  }
+
+  private headers() {
+    return {
+      "content-type": "application/json",
+      authorization: `Bearer ${this.apiKey}`,
+    };
+  }
+
+  async *stream(opts: CompleteOptions): AsyncIterable<string> {
+    const res = await this.fetcher(`${this.endpoint}/chat/completions`, {
+      method: "POST",
+      headers: this.headers(),
+      body: this.body(opts, true),
+      signal: opts.signal,
+    });
+    if (!res.ok || !res.body) {
+      throw new Error(`groq ${res.status}: ${await res.text().catch(() => "")}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let nl: number;
+      while ((nl = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, nl).trim();
+        buffer = buffer.slice(nl + 1);
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string } }> };
+          const chunk = evt.choices?.[0]?.delta?.content;
+          if (chunk) yield chunk;
+        } catch {
+          /* partial frame — the next read completes it */
+        }
+      }
+    }
+  }
+
+  async complete(opts: CompleteOptions): Promise<string> {
+    const res = await this.fetcher(`${this.endpoint}/chat/completions`, {
+      method: "POST",
+      headers: this.headers(),
+      body: this.body(opts, false),
+      signal: opts.signal,
+    });
+    if (!res.ok) throw new Error(`groq ${res.status}: ${await res.text().catch(() => "")}`);
+    const obj = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    return obj.choices?.[0]?.message?.content ?? "";
+  }
+}
+
 /* -------------------------------------------------------------------- mock */
 
 class MockProvider implements Provider {
@@ -311,6 +401,15 @@ export function getProvider(binding: Binding = "inspector"): Provider {
       setting("ANTHROPIC_MODEL", binding) ?? "claude-sonnet-5",
       key,
       setting("ANTHROPIC_BASE_URL", binding) ?? "https://api.anthropic.com",
+      fetcher,
+    );
+  } else if (kind === "groq") {
+    const key = setting("GROQ_API_KEY", binding);
+    if (!key) throw new Error(`${binding} is bound to groq but GROQ_API_KEY is unset`);
+    provider = new GroqProvider(
+      setting("GROQ_MODEL", binding) ?? "openai/gpt-oss-120b",
+      key,
+      setting("GROQ_BASE_URL", binding) ?? "https://api.groq.com/openai/v1",
       fetcher,
     );
   } else if (kind === "mock") {
