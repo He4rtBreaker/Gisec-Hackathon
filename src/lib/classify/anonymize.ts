@@ -1,4 +1,4 @@
-import { isAnonymisable, type PresidioHit } from "./presidio";
+import { analyzeWithPresidio, isAnonymisable, type PresidioHit } from "./presidio";
 
 /**
  * Reversible anonymisation, backed by Microsoft Presidio's anonymizer
@@ -149,4 +149,70 @@ export function restore(text: string, replacements: Replacement[]): string {
     out = out.split(r.placeholder).join(r.original);
   }
   return out;
+}
+
+/** Separator used to anonymise a whole conversation in one pass. A control
+ *  picture character no recogniser claims, so no entity can span it. */
+const JOIN = "\n␟\n";
+
+export interface MultiResult {
+  parts: string[];
+  replacements: Replacement[];
+  /** False when something needed redacting and we could not do it. */
+  available: boolean;
+  /** False when the analyzer itself was unreachable — recall is reduced, but
+   *  that is the documented degraded mode, not a failure to protect. */
+  analyzerUp: boolean;
+}
+
+/**
+ * Anonymise every message heading outward under one shared map, so a person
+ * named in turn one keeps the same token in turn nine. Analysing the turns
+ * together rather than one by one is also what makes that possible — and it
+ * costs one round trip instead of N.
+ */
+export async function anonymizeAll(parts: string[]): Promise<MultiResult> {
+  const joined = parts.join(JOIN);
+  const { hits, available: analyzerUp } = await analyzeWithPresidio(joined);
+  if (!hits.length) return { parts, replacements: [], available: true, analyzerUp };
+
+  const r = await anonymize(joined, hits);
+  if (!r.available) return { parts, replacements: [], available: false, analyzerUp };
+
+  const split = r.text.split(JOIN);
+  // If the separator did not survive, the mapping between messages is no
+  // longer trustworthy. Fail closed rather than send a scrambled payload.
+  if (split.length !== parts.length) {
+    return { parts, replacements: [], available: false, analyzerUp };
+  }
+  return { parts: split, replacements: r.replacements, available: true, analyzerUp };
+}
+
+/**
+ * Puts real values back into a reply as it streams.
+ *
+ * A placeholder can arrive split across chunks — "<PER" then "SON_1>" — so a
+ * plain per-chunk replace would miss it and leak the token to the reader.
+ * Anything after an unclosed "<" is held back until its ">" turns up.
+ */
+export function createRestorer(replacements: Replacement[]) {
+  if (!replacements.length) {
+    return { push: (chunk: string) => chunk, flush: () => "" };
+  }
+  let held = "";
+  return {
+    push(chunk: string): string {
+      held += chunk;
+      const open = held.lastIndexOf("<");
+      const cut = open !== -1 && held.indexOf(">", open) === -1 ? open : held.length;
+      const ready = held.slice(0, cut);
+      held = held.slice(cut);
+      return restore(ready, replacements);
+    },
+    flush(): string {
+      const out = restore(held, replacements);
+      held = "";
+      return out;
+    },
+  };
 }

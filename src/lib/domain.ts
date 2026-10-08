@@ -65,6 +65,20 @@ export const ENV_MAX_LEVEL: Record<EnvKey, Level> = {
 };
 
 /** Minimum requester clearance needed to target an environment directly. */
+/** Whether a request sent here physically leaves sovereign ground. Only these
+ *  environments need their payload anonymised first — on-prem and the enclave
+ *  are trusted with the real thing, and redacting for them would cost accuracy
+ *  to protect data from a machine already cleared to hold it.
+ *
+ *  Not the same question as egressAllowed() in llm/provider.ts, which asks
+ *  whether a binding's configured endpoint sits inside its permitted boundary.
+ *  On-prem pointed at loopback passes that check and still must not redact. */
+export const ENV_LEAVES_BOUNDARY: Record<EnvKey, boolean> = {
+  cloud: true,
+  onprem: false,
+  airgap: false,
+};
+
 export const ENV_CLEARANCE: Record<EnvKey, Level> = {
   cloud:  "PUBLIC",
   onprem: "PUBLIC",

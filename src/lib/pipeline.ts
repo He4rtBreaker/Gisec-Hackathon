@@ -6,11 +6,12 @@ import {
 } from "./conversations";
 import { classify } from "./classify";
 import { EgressBlockedError, getProvider, type ChatMessage } from "./llm/provider";
+import { anonymizeAll, createRestorer, type Replacement } from "./classify/anonymize";
 import { evaluate } from "./policy/engine";
 import { activeArtefact } from "./deployments";
 import { acquire, release } from "./environments";
 import { knowledgeBlock, ownsProject, retrieve, summarizeContext, withProjectContext } from "./projects";
-import { maxLevel, type EnvKey, type Level } from "./domain";
+import { ENV_LEAVES_BOUNDARY, maxLevel, type EnvKey, type Level } from "./domain";
 
 /**
  * The request pipeline: inspect → decide → dispatch → record.
@@ -299,8 +300,58 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     ? `${SYSTEM}\n\nProject instructions from the user:\n${ctx.project.instructions}`
     : SYSTEM;
 
+  /* ---------- 3a. anonymise, but only for what leaves the building ------
+   *
+   * On-prem is sovereign ground: it may hold the real thing, and redacting
+   * there would cost accuracy to protect data from a machine already trusted
+   * with it. Anything bound outward goes as placeholders instead, and the
+   * table that reverses them never leaves this process.
+   *
+   * The whole conversation is anonymised together, not just this turn: a name
+   * introduced three turns ago is still a name, and one shared map keeps it
+   * the same token throughout. */
+  let replacements: Replacement[] = [];
+  if (ENV_LEAVES_BOUNDARY[envKey]) {
+    const outward = await anonymizeAll(messages.map((m) => m.content));
+    if (!outward.available) {
+      // Presidio found something to redact and could not do it. The one thing
+      // we must not do is send the raw text onward anyway.
+      const message =
+        "Anonymisation is unavailable, so this request cannot be sent to an external environment. " +
+        "Retry, or pin the request to Sovereign On-Prem, which does not redact.";
+      updateMessage(assistantId, { status: "error", content: "" });
+      writeAudit({
+        actor: user.email, kind: "anonymize.failed", subject: userMsgId,
+        summary: `${chosen.name}: redaction unavailable, request withheld`,
+        detail: { envKey, level: cls.level, seal },
+      });
+      emit({ type: "error", message });
+      return { ...base, verdict: "ERROR", envKey, reason: message };
+    }
+    replacements = outward.replacements;
+    outward.parts.forEach((content, i) => { messages[i].content = content; });
+
+    if (replacements.length) {
+      db().prepare(`UPDATE classifications SET anonymization_json = ? WHERE id = ?`)
+        .run(JSON.stringify(replacements), clsId);
+      writeAudit({
+        actor: user.email, kind: "request.anonymized", subject: userMsgId,
+        summary: `${replacements.length} value${replacements.length > 1 ? "s" : ""} replaced before leaving for ${chosen.name}`,
+        detail: { envKey, entities: replacements.map((r) => ({ type: r.entityType, as: r.placeholder })) },
+      });
+    }
+    emit({
+      type: "anonymized",
+      replacements: replacements.map((r) => ({
+        placeholder: r.placeholder, entityType: r.entityType, original: r.original,
+      })),
+      analyzerUp: outward.analyzerUp,
+    });
+  }
+
   const started = Date.now();
   let text = "";
+  const restorer = createRestorer(replacements);
   acquire(envKey);
   try {
     // Simulated network hop between the core and the chosen environment.
@@ -309,9 +360,12 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
       messages, system, maxTokens: input.maxTokens, signal: input.signal,
     });
     for await (const chunk of stream) {
-      text += chunk;
-      emit({ type: "delta", text: chunk });
+      // The reader must never see a placeholder, so rehydrate as it streams.
+      const shown = restorer.push(chunk);
+      if (shown) { text += shown; emit({ type: "delta", text: shown }); }
     }
+    const tail = restorer.flush();
+    if (tail) { text += tail; emit({ type: "delta", text: tail }); }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     updateMessage(assistantId, { status: "error", content: text });
