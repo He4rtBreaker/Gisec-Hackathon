@@ -23,6 +23,13 @@ const PRESIDIO_URL = process.env.PRESIDIO_URL || "http://127.0.0.1:5002";
 const TIMEOUT_MS = 2000;
 const SCORE_THRESHOLD = 0.55;
 
+/** Entity types worth replacing before a request leaves for a public model:
+ *  everything we treat as sensitive, plus PERSON, which is not sensitive on
+ *  its own (see toSignals) but must still not be shipped out in the clear. */
+export function isAnonymisable(entityType: string): boolean {
+  return entityType === "PERSON" || entityType in ENTITY_LEVEL;
+}
+
 /** Presidio's own entity types we have an opinion on. Types we don't
  *  recognise (e.g. DATE_TIME) are ignored — not everything NER finds is
  *  sensitive on its own. */

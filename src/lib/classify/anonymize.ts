@@ -1,4 +1,4 @@
-import type { PresidioHit } from "./presidio";
+import { isAnonymisable, type PresidioHit } from "./presidio";
 
 /**
  * Reversible anonymisation, backed by Microsoft Presidio's anonymizer
@@ -75,6 +75,10 @@ function plan(text: string, hits: PresidioHit[]) {
   const operators: Record<string, { type: "replace"; new_value: string }> = {};
 
   for (const h of dedupe(hits)) {
+    // Presidio reports everything it recognises, including DATE_TIME, which
+    // fires on words like "monthly". Replacing those costs the model real
+    // meaning and protects nothing, so only redact what we call sensitive.
+    if (!isAnonymisable(h.entity_type)) continue;
     const original = text.slice(h.start, h.end);
     if (!original.trim()) continue;
 
