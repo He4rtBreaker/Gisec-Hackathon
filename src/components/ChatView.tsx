@@ -175,6 +175,17 @@ export default function ChatView({
                   }
                 : m.inspection,
             }));
+          } else if (evt.type === "anonymized") {
+            const e = evt as unknown as {
+              replacements: NonNullable<Inspection["anonymization"]>["replacements"];
+              analyzerUp: boolean;
+            };
+            applyToLast((m) => ({
+              ...m,
+              inspection: m.inspection
+                ? { ...m.inspection, anonymization: { replacements: e.replacements, analyzerUp: e.analyzerUp } }
+                : m.inspection,
+            }));
           } else if (evt.type === "refused") {
             const e = evt as unknown as {
               reason: string; policyName: string | null; trace: Refusal["trace"];

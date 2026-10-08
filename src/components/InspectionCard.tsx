@@ -32,6 +32,12 @@ export interface Inspection {
   artefact?: string;
   /** Project knowledge that accompanied the request. */
   context?: ContextSummary | null;
+  /** Present only when the request left sovereign ground, so its absence on
+   *  an on-prem answer is the point, not an omission. */
+  anonymization?: {
+    replacements: Array<{ placeholder: string; entityType: string; original: string }>;
+    analyzerUp: boolean;
+  };
 }
 
 const LEVEL_STYLE: Record<Level, { text: string; dot: string; ring: string }> = {
@@ -195,6 +201,46 @@ export default function InspectionCard({ data }: { data: Inspection }) {
               {data.overrodePin && (
                 <p className="mt-1 text-[11.5px] text-warn">
                   Your pinned target was overridden by policy.
+                </p>
+              )}
+            </div>
+          )}
+
+          {data.anonymization && (
+            <div>
+              <div className="mz-label mb-1.5">
+                Anonymised before dispatch{data.envName ? ` to ${data.envName}` : ""}
+              </div>
+              {data.anonymization.replacements.length === 0 ? (
+                <p className="text-[12px] leading-relaxed text-ink-dim">
+                  Nothing in this request needed replacing — it carried no personal data.
+                </p>
+              ) : (
+                <>
+                  <ul className="space-y-1">
+                    {data.anonymization.replacements.map((r) => (
+                      <li key={r.placeholder} className="flex items-center gap-2 text-[12px]">
+                        <span className="h-1 w-1 shrink-0 rounded-full bg-onprem" />
+                        <span className="truncate text-ink-mid">{r.original}</span>
+                        <span className="shrink-0 font-mono text-[10px] text-ink-faint">
+                          {r.entityType}
+                        </span>
+                        <span className="ml-auto shrink-0 font-mono text-[10.5px] text-onprem">
+                          {r.placeholder}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-dim">
+                    Replaced on-prem before the request left, and put back as the reply
+                    arrived. {data.envName ?? "The external environment"} only ever saw the
+                    placeholders.
+                  </p>
+                </>
+              )}
+              {!data.anonymization.analyzerUp && (
+                <p className="mt-1 text-[11.5px] text-warn">
+                  The NER analyzer was unreachable — only pattern-matched values could be found.
                 </p>
               )}
             </div>

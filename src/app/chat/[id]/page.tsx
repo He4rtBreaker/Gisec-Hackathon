@@ -78,18 +78,23 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
 /** Rehydrate a stored classification for display. */
 function loadInspection(userMessageId: string): Inspection | null {
   const row = db().prepare(
-    `SELECT level, confidence, rationale, signals_json, inspector, latency_ms, context_json
+    `SELECT level, confidence, rationale, signals_json, inspector, latency_ms, context_json,
+            anonymization_json
        FROM classifications WHERE message_id = ? ORDER BY created_at DESC LIMIT 1`
   ).get(userMessageId) as {
     level: Inspection["level"]; confidence: number; rationale: string;
     signals_json: string; inspector: string; latency_ms: number; context_json: string | null;
+    anonymization_json: string | null;
   } | undefined;
   if (!row) return null;
 
   const route = db().prepare(
-    `SELECT reason, artefact_ref FROM routing_decisions
-      WHERE message_id = ? AND verdict = 'ALLOW' ORDER BY created_at DESC LIMIT 1`
-  ).get(userMessageId) as { reason: string; artefact_ref: string | null } | undefined;
+    `SELECT r.reason, r.artefact_ref, e.name AS env_name
+       FROM routing_decisions r
+       LEFT JOIN environments e ON e.key = r.env_key
+      WHERE r.message_id = ? AND r.verdict = 'ALLOW' ORDER BY r.created_at DESC LIMIT 1`
+  ).get(userMessageId) as
+    { reason: string; artefact_ref: string | null; env_name: string | null } | undefined;
 
   return {
     level: row.level,
@@ -100,7 +105,13 @@ function loadInspection(userMessageId: string): Inspection | null {
     latencyMs: row.latency_ms,
     degraded: false,
     routeReason: route?.reason,
+    envName: route?.env_name ?? undefined,
     artefact: route?.artefact_ref ?? undefined,
+    // Only written when the request left sovereign ground, so a reopened
+    // on-prem thread correctly shows no redaction section at all.
+    anonymization: row.anonymization_json
+      ? { replacements: JSON.parse(row.anonymization_json), analyzerUp: true }
+      : undefined,
     context: row.context_json ? (JSON.parse(row.context_json) as Inspection["context"]) : null,
   };
 }

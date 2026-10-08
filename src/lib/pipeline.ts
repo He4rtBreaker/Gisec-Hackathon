@@ -319,7 +319,9 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
       const message =
         "Anonymisation is unavailable, so this request cannot be sent to an external environment. " +
         "Retry, or pin the request to Sovereign On-Prem, which does not redact.";
-      updateMessage(assistantId, { status: "error", content: "" });
+      // Persist the reason, not an empty body: a reopened thread should still
+      // explain why it stopped rather than show a bare failure.
+      updateMessage(assistantId, { status: "error", content: message });
       writeAudit({
         actor: user.email, kind: "anonymize.failed", subject: userMsgId,
         summary: `${chosen.name}: redaction unavailable, request withheld`,
