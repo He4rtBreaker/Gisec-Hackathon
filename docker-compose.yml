@@ -11,3 +11,15 @@ services:
     ports:
       - "127.0.0.1:5002:3000"
     restart: unless-stopped
+
+  # Presidio's anonymizer, used by src/lib/classify/anonymize.ts to replace the
+  # spans the analyzer found with reversible placeholders before a request is
+  # allowed out to a public model.
+  #
+  # Loopback only, same as the analyzer: the mapping between a placeholder and
+  # the real value it stands for must never be reachable from outside the host.
+  presidio-anonymizer:
+    image: mcr.microsoft.com/presidio-anonymizer:latest
+    ports:
+      - "127.0.0.1:5003:3000"
+    restart: unless-stopped

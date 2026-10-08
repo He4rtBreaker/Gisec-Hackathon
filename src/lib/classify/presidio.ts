@@ -84,7 +84,7 @@ const ENTITY_LABEL: Record<string, string> = {
   NRP: "Nationality, religion or political affiliation",
 };
 
-interface PresidioHit {
+export interface PresidioHit {
   entity_type: string;
   start: number;
   end: number;
@@ -93,6 +93,8 @@ interface PresidioHit {
 
 export interface PresidioResult {
   signals: Signal[];
+  /** Raw spans, kept so anonymize.ts can replace exactly what was found. */
+  hits: PresidioHit[];
   /** False when the container could not be reached in time. Not a security
    *  failure — the regex floor still holds — just a recall layer being off. */
   available: boolean;
@@ -141,7 +143,7 @@ function toSignals(text: string, hits: PresidioHit[]): Signal[] {
 }
 
 export async function analyzeWithPresidio(text: string): Promise<PresidioResult> {
-  if (!text.trim()) return { signals: [], available: true };
+  if (!text.trim()) return { signals: [], hits: [], available: true };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -156,14 +158,14 @@ export async function analyzeWithPresidio(text: string): Promise<PresidioResult>
       }),
       signal: controller.signal,
     });
-    if (!res.ok) return { signals: [], available: false };
+    if (!res.ok) return { signals: [], hits: [], available: false };
     const hits = (await res.json()) as PresidioHit[];
-    return { signals: toSignals(text, hits), available: true };
+    return { signals: toSignals(text, hits), hits, available: true };
   } catch {
     // Not deployed, container still starting, or genuinely down. classify()
     // treats this exactly like the adjudicator being unreachable: fall back,
     // don't fail the request.
-    return { signals: [], available: false };
+    return { signals: [], hits: [], available: false };
   } finally {
     clearTimeout(timer);
   }
