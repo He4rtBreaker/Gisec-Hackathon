@@ -6,7 +6,7 @@ import ChatView from "@/components/ChatView";
 import type { UiMessage } from "@/components/MessageList";
 import type { Inspection } from "@/components/InspectionCard";
 import type { Refusal } from "@/components/RefusalCard";
-import { ENV_META } from "@/lib/domain";
+import { ENV_META, LEVEL_RANK } from "@/lib/domain";
 import { projectOptions } from "@/lib/projects";
 
 export default async function ThreadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -79,12 +79,12 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
 function loadInspection(userMessageId: string): Inspection | null {
   const row = db().prepare(
     `SELECT level, confidence, rationale, signals_json, inspector, latency_ms, context_json,
-            anonymization_json
+            anonymization_json, policy_scan_json
        FROM classifications WHERE message_id = ? ORDER BY created_at DESC LIMIT 1`
   ).get(userMessageId) as {
     level: Inspection["level"]; confidence: number; rationale: string;
     signals_json: string; inspector: string; latency_ms: number; context_json: string | null;
-    anonymization_json: string | null;
+    anonymization_json: string | null; policy_scan_json: string | null;
   } | undefined;
   if (!row) return null;
 
@@ -112,6 +112,13 @@ function loadInspection(userMessageId: string): Inspection | null {
     anonymization: row.anonymization_json
       ? { replacements: JSON.parse(row.anonymization_json), analyzerUp: true }
       : undefined,
+    scan: row.policy_scan_json
+      ? (JSON.parse(row.policy_scan_json) as Inspection["scan"])
+      : undefined,
+    // No stored scan on material above Official means it was held back from
+    // the hosted scanner, not that it was forgotten.
+    scanSkippedAt: !row.policy_scan_json && LEVEL_RANK[row.level] >= LEVEL_RANK["CONFIDENTIAL"]
+      ? row.level : undefined,
     context: row.context_json ? (JSON.parse(row.context_json) as Inspection["context"]) : null,
   };
 }

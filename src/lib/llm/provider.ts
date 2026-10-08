@@ -14,7 +14,7 @@ import type { EnvKey } from "../domain";
  * addresses. Mis-pointing the enclave at a hosted API fails closed.
  */
 
-export type Binding = EnvKey | "inspector";
+export type Binding = EnvKey | "inspector" | "scanner";
 
 export type ChatRole = "system" | "user" | "assistant";
 export interface ChatMessage {
@@ -69,6 +69,14 @@ export function egressAllowed(binding: Binding, endpoint: string): EgressCheck {
     return loop
       ? { ok: true, reason: "loopback only — no outbound route" }
       : { ok: false, reason: `${host} is off-host; the enclave has no outbound route` };
+  }
+  // The policy scanner reads a request before anything has decided where it
+  // belongs, so it is only ever given material already cleared to leave —
+  // classify() short-circuits anything Confidential or above straight to
+  // on-prem without calling it. Today it runs on a hosted model; the intent
+  // is a small local one, at which point this joins the clause below.
+  if (binding === "scanner") {
+    return { ok: true, reason: "external egress permitted — hosted scanner" };
   }
   if (binding === "onprem" || binding === "inspector") {
     return loop || priv

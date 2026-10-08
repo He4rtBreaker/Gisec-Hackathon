@@ -8,6 +8,7 @@ import { classify } from "./classify";
 import { EgressBlockedError, getProvider, type ChatMessage } from "./llm/provider";
 import { anonymizeAll, createRestorer, type Replacement } from "./classify/anonymize";
 import { evaluate } from "./policy/engine";
+import { scanAgainstPolicies, skipFor, type PolicyScan } from "./policy/scan";
 import { activeArtefact } from "./deployments";
 import { acquire, release } from "./environments";
 import { knowledgeBlock, ownsProject, retrieve, summarizeContext, withProjectContext } from "./projects";
@@ -196,6 +197,41 @@ export async function runRequest(input: RunInput, emit: Emit): Promise<RunResult
     nerAvailable: cls.nerAvailable,
     context: contextSummary,
   });
+
+  /* ---------- 1a. scan the request against the written policies --------
+   *
+   * A second opinion, from a different model than the adjudicator, asking a
+   * different question: not "how sensitive is this" but "would sending this
+   * break a rule we have written down".
+   *
+   * It reads the request as written, before anonymisation, because a rule
+   * about personal data cannot be judged once the personal data has become
+   * <PERSON_1>. That is exactly why anything Confidential or above never
+   * reaches it: the scanner is a hosted model today, and routing a request
+   * on-prem afterwards would not undo a call that already carried it off
+   * sovereign ground.
+   *
+   * Step 5 turns this verdict into a routing decision. For now it is
+   * recorded and shown. */
+  let scan: PolicyScan | null = null;
+  if (skipFor(seal)) {
+    emit({ type: "scan.skipped", level: seal });
+  } else {
+    scan = await scanAgainstPolicies(content, input.signal);
+    db().prepare(`UPDATE classifications SET policy_scan_json = ? WHERE id = ?`)
+      .run(JSON.stringify(scan), clsId);
+    writeAudit({
+      actor: user.email, kind: "policy.scanned", subject: userMsgId,
+      summary: scan.skipped
+        ? `Policy scan unavailable (${scan.scanner})`
+        : scan.compatible
+          ? `No policy breach found by ${scan.scanner}`
+          : `Possible breach of ${scan.breached.join(", ")}`,
+      detail: { compatible: scan.compatible, breached: scan.breached, reason: scan.reason,
+                scanner: scan.scanner, latencyMs: scan.latencyMs, skipped: scan.skipped },
+    });
+    emit({ type: "scanned", scan });
+  }
 
   /* ---------- 2. evaluate policy --------------------------------------- */
   const pinned = input.preferred && input.preferred !== "auto" ? input.preferred : null;

@@ -32,6 +32,18 @@ export interface Inspection {
   artefact?: string;
   /** Project knowledge that accompanied the request. */
   context?: ContextSummary | null;
+  /** Verdict of the separate policy-compliance scan. Absent when the request
+   *  was too sensitive to show a hosted scanner. */
+  scan?: {
+    compatible: boolean;
+    breached: string[];
+    reason: string;
+    scanner: string;
+    latencyMs: number;
+    skipped?: "too-sensitive" | "unavailable";
+  };
+  /** Set when the scan was skipped because the material outranks it. */
+  scanSkippedAt?: Level;
   /** Present only when the request left sovereign ground, so its absence on
    *  an on-prem answer is the point, not an omission. */
   anonymization?: {
@@ -188,6 +200,41 @@ export default function InspectionCard({ data }: { data: Inspection }) {
                   );
                 })}
               </ul>
+            </div>
+          )}
+
+          {(data.scan || data.scanSkippedAt) && (
+            <div>
+              <div className="mz-label mb-1">Policy scan</div>
+              {data.scanSkippedAt ? (
+                <p className="text-[12px] leading-relaxed text-ink-dim">
+                  Not run. At {data.scanSkippedAt} this request stays on sovereign
+                  infrastructure, and the scanner is a hosted model — showing it the
+                  request would be the very disclosure the routing prevents.
+                </p>
+              ) : data.scan!.skipped === "unavailable" ? (
+                <p className="text-[12px] leading-relaxed text-warn">{data.scan!.reason}</p>
+              ) : (
+                <>
+                  <p className="flex items-center gap-2 text-[12.5px] leading-relaxed">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                      data.scan!.compatible ? "bg-ok" : "bg-deny"}`} />
+                    <span className={data.scan!.compatible ? "text-ink-mid" : "text-deny"}>
+                      {data.scan!.compatible
+                        ? "No written policy is breached by this request."
+                        : `Reads as a breach of ${data.scan!.breached.join(", ")}.`}
+                    </span>
+                  </p>
+                  {data.scan!.reason && (
+                    <p className="mt-1 text-[11.5px] leading-relaxed text-ink-dim">
+                      {data.scan!.reason}
+                    </p>
+                  )}
+                  <p className="mt-1 font-mono text-[10px] text-ink-faint">
+                    scanned by {data.scan!.scanner} · {data.scan!.latencyMs} ms
+                  </p>
+                </>
+              )}
             </div>
           )}
 

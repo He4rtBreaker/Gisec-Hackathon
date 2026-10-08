@@ -67,6 +67,7 @@ function migrate(conn: Database.Database) {
   add("conversations", "project_id", `project_id TEXT`);
   add("classifications", "context_json", `context_json TEXT`);
   add("classifications", "anonymization_json", `anonymization_json TEXT`);
+  add("classifications", "policy_scan_json", `policy_scan_json TEXT`);
   add("audit_log", "prev_hash", `prev_hash TEXT`);
   add("audit_log", "hash", `hash TEXT`);
 }

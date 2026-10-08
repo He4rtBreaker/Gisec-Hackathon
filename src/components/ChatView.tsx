@@ -175,6 +175,18 @@ export default function ChatView({
                   }
                 : m.inspection,
             }));
+          } else if (evt.type === "scanned") {
+            const e = evt as unknown as { scan: NonNullable<Inspection["scan"]> };
+            applyToLast((m) => ({
+              ...m,
+              inspection: m.inspection ? { ...m.inspection, scan: e.scan } : m.inspection,
+            }));
+          } else if (evt.type === "scan.skipped") {
+            const e = evt as unknown as { level: Inspection["level"] };
+            applyToLast((m) => ({
+              ...m,
+              inspection: m.inspection ? { ...m.inspection, scanSkippedAt: e.level } : m.inspection,
+            }));
           } else if (evt.type === "anonymized") {
             const e = evt as unknown as {
               replacements: NonNullable<Inspection["anonymization"]>["replacements"];
