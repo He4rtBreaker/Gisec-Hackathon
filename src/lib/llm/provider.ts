@@ -290,9 +290,14 @@ class GroqProvider implements Provider {
       stream,
       temperature: opts.temperature ?? 0.7,
       max_tokens: opts.maxTokens ?? 2048,
-      // The open-weight models here deliberate before answering. A structured
-      // verdict wants the answer, and reasoning arrives on its own delta field.
-      ...(opts.json ? { response_format: { type: "json_object" }, reasoning_effort: "low" } : {}),
+      // These open-weight models deliberate before answering, and that
+      // deliberation is billed against max_tokens. At the demo runner's
+      // 80-token budget, default effort spends 50 of them thinking and the
+      // reply arrives truncated or empty, so hold reasoning to a minimum —
+      // the same intent as the Ollama provider's think:false. Reasoning is
+      // streamed on its own delta field, so it never reaches the transcript.
+      reasoning_effort: "low",
+      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     });
   }
 
