@@ -8,6 +8,18 @@ function hash(password: string): string {
 }
 
 const conn = db();
+
+// On a host with a persistent disk the database outlives the container, and
+// boot must not wipe what it finds. `--if-empty` turns seeding into a
+// first-run step instead of a reset.
+if (process.argv.includes("--if-empty")) {
+  const { n } = conn.prepare(`SELECT COUNT(*) AS n FROM users`).get() as { n: number };
+  if (n > 0) {
+    console.log(`Database already holds ${n} users — leaving it as it is.`);
+    process.exit(0);
+  }
+}
+
 const t = now();
 
 // A reseed is a fresh dataset, so the audit ledger starts a fresh chain too.
