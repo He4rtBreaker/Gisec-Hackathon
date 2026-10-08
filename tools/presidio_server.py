@@ -21,7 +21,8 @@ import json
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from presidio_analyzer import AnalyzerEngine, RecognizerResult
+from presidio_analyzer import AnalyzerEngine, PatternRecognizer, RecognizerResult
+from presidio_analyzer import Pattern
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
@@ -31,8 +32,55 @@ HOST = "127.0.0.1"
 # 5003. Here one process answers on both.
 PORTS = (5002, 5003)
 
+# Recognisers Microsoft does not ship, for the identifiers this deployment
+# actually handles. Mirrors the regex detectors in src/lib/classify/detectors.ts
+# so one engine owns the question "where is the sensitive text".
+#
+# Two of those detectors match a keyword rather than a value — "payroll",
+# "api key" — which is right for classifying a request and wrong for redacting
+# one: replacing the word costs the model the sentence and protects nothing.
+# Here the pattern matches the value and the keyword is a context word, which
+# is how Presidio is meant to express "this shape, but only near that word".
+LOCAL_RECOGNIZERS = [
+    PatternRecognizer(
+        supported_entity="AE_EMIRATES_ID",
+        patterns=[Pattern("emirates id", r"\b784[-\s]?\d{4}[-\s]?\d{7}[-\s]?\d\b", 0.85)],
+        context=["emirates", "eid", "identity"],
+    ),
+    PatternRecognizer(
+        supported_entity="AE_PASSPORT",
+        # A letter or two then digits is far too common a shape to redact on
+        # sight, so it scores below threshold on its own and only clears it
+        # when "passport" is nearby.
+        patterns=[Pattern("passport number", r"\b[A-Z]{1,2}\d{6,9}\b", 0.3)],
+        context=["passport", "travel document"],
+    ),
+    PatternRecognizer(
+        supported_entity="PAYROLL_AMOUNT",
+        patterns=[
+            Pattern("aed amount", r"\bAED\s?\d[\d,]*(?:\.\d{2})?\b", 0.4),
+            Pattern("amount aed", r"\b\d[\d,]*(?:\.\d{2})?\s?AED\b", 0.4),
+        ],
+        context=["salary", "payroll", "remuneration", "gratuity", "net pay",
+                 "gross pay", "compensation", "wage"],
+    ),
+    PatternRecognizer(
+        supported_entity="CREDENTIAL",
+        # Policy refuses credential material outright, so this should never be
+        # reached in practice. It is here so that if that policy is ever
+        # loosened, the key is redacted rather than forwarded in the clear.
+        patterns=[
+            Pattern("prefixed key", r"\b(?:sk|pk|gsk|ghp|ghs|xox[baprs])[-_][A-Za-z0-9_-]{16,}\b", 0.85),
+            Pattern("bearer token", r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b", 0.85),
+        ],
+        context=["api", "key", "token", "secret", "password"],
+    ),
+]
+
 print("loading spaCy model (first start takes a few seconds)...", flush=True)
 analyzer = AnalyzerEngine()
+for rec in LOCAL_RECOGNIZERS:
+    analyzer.registry.add_recognizer(rec)
 anonymizer = AnonymizerEngine()
 print(
     f"presidio ready on http://{HOST}:{PORTS[0]} and :{PORTS[1]}"

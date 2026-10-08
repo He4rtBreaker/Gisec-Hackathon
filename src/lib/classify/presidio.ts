@@ -34,6 +34,12 @@ export function isAnonymisable(entityType: string): boolean {
  *  recognise (e.g. DATE_TIME) are ignored — not everything NER finds is
  *  sensitive on its own. */
 const ENTITY_LEVEL: Record<string, Level> = {
+  // Local recognisers registered in tools/presidio_server.py, mirroring the
+  // regex detectors. Presidio ships nothing for these.
+  AE_EMIRATES_ID: "CONFIDENTIAL",
+  AE_PASSPORT: "CONFIDENTIAL",
+  PAYROLL_AMOUNT: "CONFIDENTIAL",
+  CREDENTIAL: "CONFIDENTIAL",
   CREDIT_CARD: "CONFIDENTIAL",
   IBAN_CODE: "CONFIDENTIAL",
   CRYPTO: "CONFIDENTIAL",
@@ -84,6 +90,10 @@ const ENTITY_LABEL: Record<string, string> = {
   PL_PESEL: "National ID number (NER)",
   FI_PERSONAL_IDENTITY_CODE: "National ID number (NER)",
   IP_ADDRESS: "Network address",
+  AE_EMIRATES_ID: "Emirates ID number",
+  AE_PASSPORT: "Passport number",
+  PAYROLL_AMOUNT: "Salary or payroll amount",
+  CREDENTIAL: "Credential or secret material",
   PHONE_NUMBER: "Telephone number (NER)",
   EMAIL_ADDRESS: "Personal email address (NER)",
   URL: "URL",
